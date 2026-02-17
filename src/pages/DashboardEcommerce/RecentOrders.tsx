@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardBody, CardHeader, Col } from 'reactstrap';
 
-// Mock Data for Leave Requests
 const leaveRequests = [
     { id: "#LV-2541", employee: "Diana Prince", img: "assets/images/users/avatar-3.jpg", type: "Annual Leave", dates: "12 Feb - 15 Feb", days: 3, dept: "Marketing", status: "Pending", balance: 12 },
     { id: "#LV-2542", employee: "Bruce Wayne", img: "assets/images/users/avatar-4.jpg", type: "Sick Leave", dates: "14 Feb", days: 1, dept: "Executive", status: "Approved", balance: 5 },
@@ -12,8 +11,6 @@ const leaveRequests = [
 ];
 
 const RecentLeaveRequests = () => {
-    
-    // Helper for Status Badge Color
     const getStatusClass = (status: string) => {
         if (status === "Approved") return "success";
         if (status === "Pending") return "warning";
@@ -41,7 +38,7 @@ const RecentLeaveRequests = () => {
                             <table className="table table-borderless table-centered align-middle table-nowrap mb-0">
                                 <thead className="text-muted table-light">
                                     <tr>
-                                        <th scope="col">Ref ID</th>
+                                        <th scope="col">Payroll No</th>
                                         <th scope="col">Employee</th>
                                         <th scope="col">Leave Type</th>
                                         <th scope="col">Duration</th>
