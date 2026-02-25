@@ -2,6 +2,8 @@ import React from 'react';
 import { Col, Row } from 'reactstrap';
 import Flatpickr from "react-flatpickr";
 
+const FlatpickrComponent = Flatpickr as unknown as React.ComponentType<any>;
+
 const Section = (props : any) => {
     return (
         <React.Fragment>
@@ -17,7 +19,7 @@ const Section = (props : any) => {
                                 <Row className="g-3 mb-0 align-items-center">
                                     <div className="col-sm-auto">
                                         <div className="input-group">
-                                            <Flatpickr
+                                            <FlatpickrComponent
                                                 className="form-control border-0 dash-filter-picker shadow"
                                                 options={{
                                                     mode: "range",

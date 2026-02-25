@@ -11,6 +11,7 @@ import {
 import Flatpickr from "react-flatpickr";
 import Select from "react-select";
 
+const FlatpickrComponent = Flatpickr as unknown as React.ComponentType<any>;
 const CrmFilter = ({ show, onCloseClick } :any) => {
   const [selectCountry, setselectCountry] = useState<any>(null);
 
@@ -39,6 +40,7 @@ const handleselectCountry = (selectCountry :any) => {
     },
   ];
 
+
   return (
     <Offcanvas
       direction="end"
@@ -58,7 +60,7 @@ const handleselectCountry = (selectCountry :any) => {
             >
               Date
             </Label>
-            <Flatpickr
+            <FlatpickrComponent
               className="form-control"
               id="datepicker-publish-input"
               placeholder="Select a date"

@@ -204,6 +204,13 @@ const Navdata = () => {
                     badgeColor: "success",
                     badgeName: "New",
                 },
+                {
+                    id: "settings",
+                    label: "Settings",
+                    link: "/settings",
+                    parentId: "dashboard",
+                    badgeColor: "danger",
+                },
             ],
         },
         {

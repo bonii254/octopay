@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import Flatpickr from "react-flatpickr";
 import Select from "react-select";
 
+const FlatpickrComponent = Flatpickr as unknown as React.ComponentType<any>;
 const ProductsGlobalFilter = () => {
     return (
         <React.Fragment>
@@ -52,7 +53,7 @@ const CustomersGlobalFilter = () => {
                 <Row className="g-3">
                     <Col sm={4}>
                         <div className="">
-                            <Flatpickr
+                            <FlatpickrComponent
                                 className="form-control"
                                 id="datepicker-publish-input"
                                 placeholder="Select a date"
@@ -139,7 +140,7 @@ const OrderGlobalFilter = () => {
         <React.Fragment>
             <Col sm={6} className="col-xxl-2">
                 <div>
-                    <Flatpickr
+                    <FlatpickrComponent
                         className="form-control"
                         id="datepicker-publish-input"
                         placeholder="Select a date"
@@ -273,7 +274,7 @@ const CryptoOrdersGlobalFilter = () => {
             <Col xl={2} md={6}>
                 <div className="input-group">
                     <span className="input-group-text" id="basic-addon1"><i className="ri-calendar-2-line"></i></span>
-                    <Flatpickr
+                    <FlatpickrComponent
                         placeholder="Select date"
                         className="form-control"
                         options={{
@@ -330,7 +331,7 @@ const InvoiceListGlobalSearch = () => {
     return (
         <React.Fragment>
             <Col sm={4} xxl={3}>
-                <Flatpickr
+                <FlatpickrComponent
                     className="form-control bg-light border-light"
                     id="datepicker-publish-input"
                     placeholder="Select a date"
@@ -372,7 +373,7 @@ const TicketsListGlobalFilter = () => {
     return (
         <React.Fragment>
             <Col xxl={3} sm={4}>
-                <Flatpickr
+                <FlatpickrComponent
                     className="form-control"
                     placeholder="Select date range"
                     options={{
@@ -425,7 +426,7 @@ const TaskListGlobalFilter = () => {
     return (
         <React.Fragment>
             <div className="col-xxl-3 col-sm-4">
-                <Flatpickr
+                <FlatpickrComponent
                     placeholder="Select date range"
                     className="form-control bg-light border-light"
                     options={{

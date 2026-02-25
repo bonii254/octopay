@@ -36,6 +36,7 @@ import { getDeals as onGetDeals } from "../../../slices/thunks";
 import { useSelector, useDispatch } from "react-redux";
 import { createSelector } from "reselect";
 
+const FlatpickrComponent = Flatpickr as unknown as React.ComponentType<any>;
 const CrmDeals = () => {
   const dispatch: any = useDispatch();
 
@@ -274,7 +275,7 @@ const CrmDeals = () => {
             </div>
             <div className="mb-3">
               <label htmlFor="dueDate" className="form-label">Due Date</label>
-              <Flatpickr
+              <FlatpickrComponent
                 name="date"
                 className="form-control"
                 id="customerdate"

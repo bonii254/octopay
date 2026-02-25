@@ -50,6 +50,9 @@ import {
 } from "../../slices/thunks";
 import { createSelector } from "reselect";
 
+
+const FlatpickrComponent = Flatpickr as unknown as React.ComponentType<any>;
+
 const Calender = () => {
   const dispatch: any = useDispatch();
   const [event, setEvent] = useState<any>({});
@@ -553,7 +556,7 @@ const Calender = () => {
                         <div className="mb-3">
                           <Label>Event Date</Label>
                           <div className={!!isEdit ? "input-group d-none" : "input-group"}>
-                            <Flatpickr
+                            <FlatpickrComponent
                               className="form-control"
                               id="event-start-date"
                               name="defaultDate"
@@ -578,7 +581,7 @@ const Calender = () => {
                         <div className="mb-3">
                           <Label>Start Time</Label>
                           <div className="input-group">
-                            <Flatpickr className="form-control"
+                            <FlatpickrComponent className="form-control"
                               name="start"
                               value={validation.values.start || ""}
                               onChange={(date:any) => validation.setFieldValue("start", date[0])}
@@ -599,7 +602,7 @@ const Calender = () => {
                         <div className="mb-3">
                           <Label>End Time</Label>
                           <div className="input-group">
-                            <Flatpickr className="form-control input-group"
+                            <FlatpickrComponent className="form-control input-group"
                               name="end"
                               value={validation.values.end || ""}
                               onChange={(date:any) => validation.setFieldValue("end", date[0])}

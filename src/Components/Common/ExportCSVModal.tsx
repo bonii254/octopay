@@ -1,7 +1,9 @@
 import PropTypes from "prop-types";
 import React from "react";
 import { Modal, ModalBody, ModalHeader } from "reactstrap";
-import { CSVLink } from "react-csv";
+import { CSVLink as OriginalCSVLink } from 'react-csv';
+
+const CSVLink = OriginalCSVLink as unknown as React.ComponentType<any>;
 
 const ExportCSVModal = ({ show, onCloseClick, data }:any) => {
   return (

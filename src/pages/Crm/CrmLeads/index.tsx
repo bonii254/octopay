@@ -52,6 +52,8 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { createSelector } from "reselect";
 
+
+const FlatpickrComponent = Flatpickr as unknown as React.ComponentType<any>;
 const CrmLeads = () => {
   const dispatch: any = useDispatch();
 
@@ -774,7 +776,7 @@ const CrmLeads = () => {
                                 Created Date
                               </Label>
 
-                              <Flatpickr
+                              <FlatpickrComponent
                                 name="date"
                                 id="datepicker-publish-input"
                                 className="form-control"

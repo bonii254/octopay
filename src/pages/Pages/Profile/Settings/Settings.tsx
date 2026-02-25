@@ -8,6 +8,7 @@ import Flatpickr from "react-flatpickr";
 import progileBg from '../../../../assets/images/profile-bg.jpg';
 import avatar1 from '../../../../assets/images/users/avatar-1.jpg';
 
+const FlatpickrComponent = Flatpickr as unknown as React.ComponentType<any>;
 const Settings = () => {
     const [activeTab, setActiveTab] = useState<any>("1");
 
@@ -228,7 +229,7 @@ const Settings = () => {
                                                         <div className="mb-3">
                                                             <Label htmlFor="JoiningdatInput" className="form-label">Joining
                                                                 Date</Label>
-                                                            <Flatpickr
+                                                            <FlatpickrComponent
                                                                 className="form-control"
                                                                 options={{
                                                                     dateFormat: "d M, Y"

@@ -1,7 +1,7 @@
 import React from 'react';
 import Flatpickr from "react-flatpickr";
 import { Link } from 'react-router-dom';
-
+const FlatpickrComponent = Flatpickr as unknown as React.ComponentType<any>;
 const UpcomingSchedules = () => {
     return (
         <React.Fragment>
@@ -12,7 +12,7 @@ const UpcomingSchedules = () => {
                     </div>
                     <div className="card-body pt-0">
                         <div className="upcoming-scheduled">
-                            <Flatpickr
+                            <FlatpickrComponent
                                 className="form-control"
                                 options={{
                                     dateFormat: "d M, Y",

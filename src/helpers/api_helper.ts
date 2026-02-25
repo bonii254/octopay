@@ -29,6 +29,10 @@ axios.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+
+      if (originalRequest.url.includes("/login")) {
+        return Promise.reject("Invalid credentials. Please try again.");
+      }
       
       if (originalRequest.url.includes("/refresh")) {
         sessionStorage.removeItem("authUser");
@@ -66,6 +70,7 @@ axios.interceptors.response.use(
         isRefreshing = false;
       }
     }
+
 
     let message = "Something went wrong";
     if (error.response) {
