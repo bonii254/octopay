@@ -1,358 +1,348 @@
-import React, { useMemo, useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
-  Card, CardBody, Row, Col, Button, Spinner, Input, Modal,
-  ModalHeader, ModalBody, UncontrolledDropdown,
-  DropdownToggle, DropdownMenu, DropdownItem, Badge
+  Row,
+  Col,
+  Card,
+  CardHeader,
+  CardBody,
+  Button,
+  Table,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  Form,
+  Label,
+  Input,
+  FormFeedback,
+  Spinner,
+  Pagination,
+  PaginationItem,
+  PaginationLink,
 } from "reactstrap";
-import {
-  Plus, Trash2, Sliders, MoreVertical,
-  Edit, ChevronLeft, ChevronRight
-} from "lucide-react";
-import {
-  useReactTable, getCoreRowModel,
-  createColumnHelper, flexRender,
-} from "@tanstack/react-table";
+import * as Yup from "yup";
+import { useFormik } from "formik";
 
-import {
-  useDepartments,
-  useDepartmentMutation
-} from "../../../../Components/Hooks/useDepartment";
-
-import {
-  useEmployeeCountsByDepartment
-} from "../../../../Components/Hooks/useEmployees";
-
-import {
-  useDesignationCountsByDepartment
-} from "../../../../Components/Hooks/useDesignation";
-
+import { useDepartments, useDepartmentMutation } from "../../../../Components/Hooks/useDepartment";
 import { Department } from "../../../../types/department";
 
-const columnHelper = createColumnHelper<Department>();
+const DepartmentSettings = () => {
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedDepts, setSelectedDepts] = useState<number[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 10;
 
-const DepartmentTable = () => {
+  const [modalList, setModalList] = useState<boolean>(false);
+  const [modalDelete, setModalDelete] = useState<boolean>(false);
+  const [isEdit, setIsEdit] = useState<boolean>(false);
+  const [department, setDepartment] = useState<Department | null>(null);
 
-  /* ---------------- STATE ---------------- */
+  const { data: departments, isLoading, isError } = useDepartments();
+  const {
+    createDepartment,
+    updateDepartment,
+    deleteDepartment,
+    isCreating,
+    isUpdating,
+    isDeleting,
+  } = useDepartmentMutation();
 
-  const [pageIndex, setPageIndex] = useState(0);
-  const [perPage] = useState(10);
-  const [globalFilter, setGlobalFilter] = useState("");
-  const [selectedRows, setSelectedRows] = useState<Record<number, boolean>>({});
-  const [designationModal, setDesignationModal] = useState(false);
-  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
+  const filteredDepartments = useMemo(() => {
+    if (!departments) return [];
+    return departments.filter((d) =>
+      d.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [departments, searchTerm]);
 
-  /* ---------------- DATA ---------------- */
+  const totalPages = Math.ceil(filteredDepartments.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredDepartments.slice(indexOfFirstItem, indexOfLastItem);
 
-  const params = {
-    page: pageIndex + 1,
-    per_page: perPage,
-    search: globalFilter,
-  };
+  const handlePageClick = (pageNumber: number) => setCurrentPage(pageNumber);
 
-  const { data, isLoading } = useDepartments(params);
-  const { deleteDepartment } = useDepartmentMutation();
-
-  // Aggregated counts (Enterprise optimized - NO N+1 calls)
-  const { data: employeeCounts } = useEmployeeCountsByDepartment();
-  const { data: designationCounts } = useDesignationCountsByDepartment();
-
-  const departments: Department[] = data ?? [];
-  const total = departments.length ?? 0;
-  const pageCount = Math.ceil(total / perPage);
-
-  /* ---------------- SELECTION ---------------- */
-
-  const toggleSelectRow = (id: number) =>
-    setSelectedRows(prev => ({ ...prev, [id]: !prev[id] }));
-
-  const isAllSelected =
-    departments.length > 0 &&
-    departments.every(d => selectedRows[d.id]);
-
-  const toggleSelectAll = () => {
-    if (isAllSelected) {
-      setSelectedRows({});
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedDepts(currentItems.map((d) => d.id));
     } else {
-      const updated: Record<number, boolean> = {};
-      departments.forEach(d => (updated[d.id] = true));
-      setSelectedRows(updated);
+      setSelectedDepts([]);
     }
   };
 
-  const handleBulkDelete = async () => {
-    const ids = Object.keys(selectedRows)
-      .filter(id => selectedRows[Number(id)])
-      .map(Number);
-
-    if (!ids.length || !window.confirm(`Delete ${ids.length} departments?`)) return;
-
-    await Promise.all(ids.map(id => deleteDepartment(id)));
-    setSelectedRows({});
+  const handleSelectOne = (id: number) => {
+    if (selectedDepts.includes(id)) {
+      setSelectedDepts(selectedDepts.filter((item) => item !== id));
+    } else {
+      setSelectedDepts([...selectedDepts, id]);
+    }
   };
 
-  /* ---------------- COLUMNS ---------------- */
+  const toggleList = () => setModalList(!modalList);
+  const toggleDelete = () => setModalDelete(!modalDelete);
 
-  const columns = useMemo(() => [
+  const handleAddClick = () => {
+    setIsEdit(false);
+    setDepartment(null);
+    validation.resetForm();
+    toggleList();
+  };
 
-    // Checkbox
-    columnHelper.display({
-      id: "select",
-      header: () => (
-        <Input
-          type="checkbox"
-          className="form-check-input"
-          checked={isAllSelected}
-          onChange={toggleSelectAll}
-        />
-      ),
-      cell: ({ row }) => (
-        <Input
-          type="checkbox"
-          className="form-check-input"
-          checked={!!selectedRows[row.original.id]}
-          onChange={() => toggleSelectRow(row.original.id)}
-        />
-      ),
-    }),
+  const handleEditClick = (dept: Department) => {
+    setIsEdit(true);
+    setDepartment(dept);
+    validation.setValues({ name: dept.name });
+    toggleList();
+  };
 
-    // Department Name
-    columnHelper.accessor("name", {
-      header: "DEPARTMENT",
-      cell: info => (
-        <span className="fw-semibold text-dark">
-          {info.getValue()}
-        </span>
-      )
-    }),
+  const handleDeleteClick = (dept: Department) => {
+    setDepartment(dept);
+    toggleDelete();
+  };
 
-    // Company Column (Single Company)
-    columnHelper.display({
-      id: "company",
-      header: "COMPANY",
-      cell: () => (
-        <Badge color="soft-primary">
-          Your Company
-        </Badge>
-      )
-    }),
-
-    // Employees Button
-    columnHelper.display({
-      id: "employees",
-      header: "EMPLOYEES",
-      cell: ({ row }) => {
-        const count = employeeCounts?.[row.original.id] ?? 0;
-
-        return (
-          <Button
-            size="sm"
-            color="soft-info"
-            onClick={() => {
-              setSelectedDepartment(row.original);
-            }}
-          >
-            {count} Employees
-          </Button>
-        );
+  const handleBulkDelete = async () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedDepts.length} departments?`)) {
+      try {
+        await Promise.all(selectedDepts.map((id) => deleteDepartment(id)));
+        setSelectedDepts([]);
+      } catch (error) {
+        console.error("Bulk delete failed", error);
       }
+    }
+  };
+
+  const validation = useFormik({
+    enableReinitialize: true,
+    initialValues: { name: (department && department.name) || "" },
+    validationSchema: Yup.object({
+      name: Yup.string().required("Please enter a department name"),
     }),
-
-    columnHelper.display({
-      id: "designations",
-      header: "DESIGNATIONS",
-      cell: ({ row }) => {
-        const count = designationCounts?.[row.original.id] ?? 0;
-
-        return (
-          <Button
-            size="sm"
-            color="soft-secondary"
-            onClick={() => {
-              setSelectedDepartment(row.original);
-              setDesignationModal(true);
-            }}
-          >
-            {count} Designations
-          </Button>
-        );
+    onSubmit: async (values) => {
+      try {
+        if (isEdit && department) {
+          await updateDepartment({ id: department.id, data: values });
+        } else {
+          await createDepartment(values);
+        }
+        validation.resetForm();
+        toggleList();
+      } catch (error) {
+        console.error("Submission error:", error);
       }
-    }),
-
-    columnHelper.display({
-      id: "actions",
-      header: "ACTIONS",
-      cell: ({ row }) => (
-        <UncontrolledDropdown>
-          <DropdownToggle
-            tag="button"
-            className="btn btn-soft-secondary btn-sm dropdown"
-          >
-            <MoreVertical size={14} />
-          </DropdownToggle>
-          <DropdownMenu end>
-            <DropdownItem
-              onClick={() => {
-                setSelectedDepartment(row.original);
-                setDesignationModal(true);
-              }}
-            >
-              <Edit size={14} className="me-2 text-muted" />
-              Manage Designations
-            </DropdownItem>
-
-            <DropdownItem divider />
-
-            <DropdownItem
-              className="text-danger"
-              onClick={() => deleteDepartment(row.original.id)}
-            >
-              <Trash2 size={14} className="me-2" />
-              Delete
-            </DropdownItem>
-          </DropdownMenu>
-        </UncontrolledDropdown>
-      )
-    })
-
-  ], [selectedRows, isAllSelected, employeeCounts, designationCounts]);
-
-  const table = useReactTable({
-    data: departments,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
+    },
   });
 
+  const executeDelete = async () => {
+    if (department) {
+      try {
+        await deleteDepartment(department.id);
+        toggleDelete();
+      } catch (error) {
+        console.error("Delete error:", error);
+      }
+    }
+  };
+
   return (
-    <Card>
-      <CardBody>
+    <React.Fragment>
+      <Row>
+        <Col lg={12}>
+          <Card id="departmentList">
+            <CardHeader className="border-0">
+              <Row className="align-items-center gy-3">
+                <Col sm={3}>
+                  <h5 className="card-title mb-0">Departments</h5>
+                </Col>
+                <Col sm={"auto"} className="ms-auto">
+                  <div className="d-flex gap-2 flex-wrap">
+                    {selectedDepts.length > 0 && (
+                      <Button color="soft-danger" onClick={handleBulkDelete}>
+                        <i className="ri-delete-bin-2-line"></i>
+                      </Button>
+                    )}
+                    <Button color="success" onClick={handleAddClick} id="create-btn">
+                      <i className="ri-add-line align-bottom me-1"></i> Add Department
+                    </Button>
+                  </div>
+                </Col>
+              </Row>
+            </CardHeader>
 
-        {/* HEADER */}
-        <Row className="mb-4 align-items-center">
-          <Col>
-            <h5 className="mb-0 fw-bold">Department Directory</h5>
-          </Col>
+            {/* GLOBAL SEARCH SECTION */}
+            <CardBody className="border border-dashed border-end-0 border-start-0">
+              <Row className="g-3">
+                <Col xxl={5} sm={6}>
+                  <div className="search-box">
+                    <Input
+                      type="text"
+                      className="form-control search"
+                      placeholder="Search for department name..."
+                      value={searchTerm}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setCurrentPage(1); // Reset to first page on search
+                      }}
+                    />
+                    <i className="ri-search-line search-icon"></i>
+                  </div>
+                </Col>
+              </Row>
+            </CardBody>
 
-          <Col className="text-end d-flex gap-2 justify-content-end">
-            <Button color="primary">
-              <Plus size={16} className="me-2" />
-              Add Department
-            </Button>
+            <CardBody className="pt-0">
+              {isLoading ? (
+                <div className="text-center py-4"><Spinner color="primary" /></div>
+              ) : isError ? (
+                <div className="text-danger text-center py-4">Error loading departments.</div>
+              ) : (
+                <>
+                  <div className="table-responsive table-card mb-1">
+                    <Table className="align-middle table-nowrap" id="departmentTable">
+                      <thead className="table-light text-muted">
+                        <tr>
+                          <th style={{ width: "50px" }}>
+                            <div className="form-check">
+                              <input
+                                className="form-check-input"
+                                type="checkbox"
+                                onChange={handleSelectAll}
+                                checked={currentItems.length > 0 && selectedDepts.length === currentItems.length}
+                              />
+                            </div>
+                          </th>
+                          <th>Department Name</th>
+                          <th>Created At</th>
+                          <th className="text-end">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="list">
+                        {currentItems.map((dept: Department) => (
+                          <tr key={dept.id}>
+                            <td>
+                              <div className="form-check">
+                                <input
+                                  className="form-check-input"
+                                  type="checkbox"
+                                  checked={selectedDepts.includes(dept.id)}
+                                  onChange={() => handleSelectOne(dept.id)}
+                                />
+                              </div>
+                            </td>
+                            <td className="fw-medium">{dept.name}</td>
+                            <td>{new Date(dept.created_at).toLocaleDateString()}</td>
+                            <td className="text-end">
+                              <ul className="list-inline hstack gap-2 justify-content-end mb-0">
+                                <li className="list-inline-item">
+                                  <button className="btn btn-sm btn-soft-info" onClick={() => handleEditClick(dept)}>
+                                    <i className="ri-pencil-fill" />
+                                  </button>
+                                </li>
+                                <li className="list-inline-item">
+                                  <button className="btn btn-sm btn-soft-danger" onClick={() => handleDeleteClick(dept)}>
+                                    <i className="ri-delete-bin-fill" />
+                                  </button>
+                                </li>
+                              </ul>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                    {filteredDepartments.length === 0 && (
+                      <div className="noresult text-center py-5">
+                        <i className="ri-search-line display-5 text-light"></i>
+                        <h5 className="mt-2">No Department Found</h5>
+                      </div>
+                    )}
+                  </div>
 
-            {Object.keys(selectedRows).length > 0 && (
-              <Button color="danger" onClick={handleBulkDelete}>
-                <Trash2 size={14} className="me-1" />
-                Bulk Delete
-              </Button>
-            )}
-          </Col>
-        </Row>
+                  {/* FOOTER: ENTRIES INFO & PAGINATION */}
+                  {!isLoading && filteredDepartments.length > 0 && (
+                    <Row className="align-items-center mt-3 g-3 text-center text-sm-start">
+                      <Col sm>
+                        <div className="text-muted">
+                          Showing <span className="fw-semibold">{indexOfFirstItem + 1}</span> to{" "}
+                          <span className="fw-semibold">
+                            {Math.min(indexOfLastItem, filteredDepartments.length)}
+                          </span>{" "}
+                          of <span className="fw-semibold">{filteredDepartments.length}</span> entries
+                        </div>
+                      </Col>
+                      <Col sm="auto">
+                        <Pagination className="pagination-wrap hstack gap-2 justify-content-center">
+                          <PaginationItem disabled={currentPage <= 1}>
+                            <PaginationLink previous href="#" onClick={(e) => { e.preventDefault(); handlePageClick(currentPage - 1); }} />
+                          </PaginationItem>
+                          {[...Array(totalPages)].map((_, i) => (
+                            <PaginationItem active={i + 1 === currentPage} key={i}>
+                              <PaginationLink href="#" onClick={(e) => { e.preventDefault(); handlePageClick(i + 1); }}>
+                                {i + 1}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ))}
+                          <PaginationItem disabled={currentPage >= totalPages}>
+                            <PaginationLink next href="#" onClick={(e) => { e.preventDefault(); handlePageClick(currentPage + 1); }} />
+                          </PaginationItem>
+                        </Pagination>
+                      </Col>
+                    </Row>
+                  )}
+                </>
+              )}
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
 
-        {/* SEARCH */}
-        <Row className="mb-3">
-          <Col md="4">
-            <Input
-              placeholder="Search departments..."
-              value={globalFilter}
-              onChange={(e) => {
-                setGlobalFilter(e.target.value);
-                setPageIndex(0);
-              }}
-            />
-          </Col>
-        </Row>
-
-        {/* TABLE */}
-        <div className="table-responsive">
-          {isLoading ? (
-            <div className="text-center p-5">
-              <Spinner color="primary" />
-            </div>
-          ) : (
-            <table className="table align-middle">
-              <thead className="table-light">
-                {table.getHeaderGroups().map(headerGroup => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map(header => (
-                      <th key={header.id}>
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-
-              <tbody>
-                {table.getRowModel().rows.map(row => (
-                  <tr key={row.id}>
-                    {row.getVisibleCells().map(cell => (
-                      <td key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        {/* PAGINATION */}
-        <Row className="align-items-center mt-4">
-          <Col>
-            <div className="text-muted">
-              Showing {departments.length} of {total} Results
-            </div>
-          </Col>
-
-          <Col className="col-auto">
-            <Button
-              color="link"
-              disabled={pageIndex === 0}
-              onClick={() => setPageIndex(p => p - 1)}
-            >
-              <ChevronLeft size={16} />
-            </Button>
-
-            <span className="mx-2">{pageIndex + 1}</span>
-
-            <Button
-              color="link"
-              disabled={pageIndex + 1 >= pageCount}
-              onClick={() => setPageIndex(p => p + 1)}
-            >
-              <ChevronRight size={16} />
-            </Button>
-          </Col>
-        </Row>
-
-        {/* DESIGNATION MODAL */}
-        <Modal
-          isOpen={designationModal}
-          toggle={() => setDesignationModal(false)}
-          size="lg"
-          centered
-        >
-          <ModalHeader toggle={() => setDesignationModal(false)}>
-            Designations - {selectedDepartment?.name}
-          </ModalHeader>
+      {/* ADD/EDIT MODAL */}
+      <Modal isOpen={modalList} toggle={toggleList} centered>
+        <ModalHeader className="bg-light p-3" toggle={toggleList}>
+          {isEdit ? "Edit Department" : "Add Department"}
+        </ModalHeader>
+        <Form onSubmit={(e) => { e.preventDefault(); validation.handleSubmit(); }}>
           <ModalBody>
-            {/* Replace with actual DesignationList component */}
-            <div className="p-4 text-center">
-              Loading designations for {selectedDepartment?.name}
+            <div className="mb-3">
+              <Label htmlFor="name" className="form-label">Department Name</Label>
+              <Input
+                name="name"
+                type="text"
+                placeholder="Enter department name"
+                onChange={validation.handleChange}
+                onBlur={validation.handleBlur}
+                value={validation.values.name}
+                invalid={validation.touched.name && !!validation.errors.name}
+              />
+              <FormFeedback>{validation.errors.name}</FormFeedback>
             </div>
           </ModalBody>
-        </Modal>
+          <div className="modal-footer">
+            <Button color="light" onClick={toggleList}>Close</Button>
+            <Button color="success" type="submit" disabled={isCreating || isUpdating}>
+              {(isCreating || isUpdating) && <Spinner size="sm" className="me-2" />}
+              {isEdit ? "Update Department" : "Add Department"}
+            </Button>
+          </div>
+        </Form>
+      </Modal>
 
-      </CardBody>
-    </Card>
+      {/* DELETE CONFIRMATION MODAL */}
+      <Modal isOpen={modalDelete} toggle={toggleDelete} centered>
+        <ModalBody className="p-5 text-center">
+          <i className="ri-delete-bin-line display-5 text-danger"></i>
+          <div className="mt-4">
+            <h4 className="mb-3">Are you sure?</h4>
+            <p className="text-muted mb-4">
+              Delete <b>{department?.name}</b>? This action cannot be undone.
+            </p>
+            <div className="hstack gap-2 justify-content-center">
+              <Button color="light" onClick={toggleDelete}>Cancel</Button>
+              <Button color="danger" onClick={executeDelete} disabled={isDeleting}>
+                {isDeleting && <Spinner size="sm" className="me-2" />} Yes, Delete It!
+              </Button>
+            </div>
+          </div>
+        </ModalBody>
+      </Modal>
+    </React.Fragment>
   );
 };
 
-export default DepartmentTable;
+export default DepartmentSettings;

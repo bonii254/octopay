@@ -40,3 +40,25 @@ export interface Employee {
   has_user_account?: boolean;
   has_bank_details?: boolean;
 }
+
+export interface EmployeePayload {
+  company_id: number;
+  user_id?: number | null;
+  department_id?: number | null;
+  designation_id?: number | null;
+  shift_id?: number | null;
+
+  employee_code: string;
+  first_name: string;
+  last_name?: string | null;
+  national_id?: string | null;
+
+  date_of_birth?: string | null;
+  hire_date: string;
+  termination_date?: string | null;
+
+  status: EmployeeStatus;
+  gender?: string | null;
+  marital_status?: string | null;
+  disability_status: boolean;
+}

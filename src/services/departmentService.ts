@@ -25,7 +25,7 @@ export const departmentService = {
       id: number, 
       payload: Partial<DepartmentPayload>
     ): Promise<Department> => {
-      const response = await api.put(`${BASE_URL}/update/${id}`, payload);
+      const response = await api.update(`${BASE_URL}/update/${id}`, payload);
       return response.department;
     },
 

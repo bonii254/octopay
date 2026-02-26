@@ -9,3 +9,8 @@ export interface Designation {
     created_at?: string;    
     updated_at?: string;    
 }
+
+export interface DesignationPayload {
+    department_id: number;
+    title: string;
+}
