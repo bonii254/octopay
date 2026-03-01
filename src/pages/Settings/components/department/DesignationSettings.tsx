@@ -15,64 +15,71 @@ import {
   Input,
   FormFeedback,
   Spinner,
-  Pagination,   
+  Pagination,
   PaginationItem,
   PaginationLink,
 } from "reactstrap";
 import * as Yup from "yup";
 import { useFormik } from "formik";
+import { useDepartments } from "../../../../Components/Hooks/useDepartment";
+import { useDesignationMutation, useDesignations } from "../../../../Components/Hooks/useDesignation";
+import { Designation, DesignationPayload } from "../../../../types/designation";
 
-import { useDepartments, useDepartmentMutation } from "../../../../Components/Hooks/useDepartment";
-import { Department } from "../../../../types/department";
+interface FormValues {
+    title: string;
+    department_id: string;
+}
 
-const DepartmentSettings = () => {
+const DesignationSettings = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [selectedDepts, setSelectedDepts] = useState<number[]>([]);
+  const [selectedDesigns, setSelectedDesigns] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [apiError, setApiError] = useState<string | null>(null);
+
   const itemsPerPage = 10;
 
   const [modalList, setModalList] = useState<boolean>(false);
   const [modalDelete, setModalDelete] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
-  const [department, setDepartment] = useState<Department | null>(null);
+  const [designation, setDesignation] = useState<Designation | null>(null);
 
-  const { data: departments, isLoading, isError } = useDepartments();
+  const { data: designations, isLoading, isError } = useDesignations();
+  const { data: departments } = useDepartments();
   const {
-    createDepartment,
-    updateDepartment,
-    deleteDepartment,
+    createDesignation,
+    updateDesignation,
+    deleteDesignation,
     isCreating,
     isUpdating,
     isDeleting,
-  } = useDepartmentMutation();
+  } = useDesignationMutation();
 
-  const filteredDepartments = useMemo(() => {
-    if (!departments) return [];
-    return departments.filter((d) =>
-      d.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredDesignations = useMemo(() => {
+    if (!designations) return [];
+    return designations.filter((d) =>
+      d.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [departments, searchTerm]);
-
-  const totalPages = Math.ceil(filteredDepartments.length / itemsPerPage);
+  }, [designations, searchTerm]);
+  const totalPages = Math.ceil(filteredDesignations.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredDepartments.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredDesignations.slice(indexOfFirstItem, indexOfLastItem);
 
   const handlePageClick = (pageNumber: number) => setCurrentPage(pageNumber);
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      setSelectedDepts(currentItems.map((d) => d.id));
+      setSelectedDesigns(currentItems.map((d) => d.id));
     } else {
-      setSelectedDepts([]);
+      setSelectedDesigns([]);
     }
   };
 
   const handleSelectOne = (id: number) => {
-    if (selectedDepts.includes(id)) {
-      setSelectedDepts(selectedDepts.filter((item) => item !== id));
+    if (selectedDesigns.includes(id)) {
+      setSelectedDesigns(selectedDesigns.filter((item) => item !== id));
     } else {
-      setSelectedDepts([...selectedDepts, id]);
+      setSelectedDesigns([...selectedDesigns, id]);
     }
   };
 
@@ -81,28 +88,27 @@ const DepartmentSettings = () => {
 
   const handleAddClick = () => {
     setIsEdit(false);
-    setDepartment(null);
+    setDesignation(null);
     validation.resetForm();
     toggleList();
   };
 
-  const handleEditClick = (dept: Department) => {
+  const handleEditClick = (desig: Designation) => {
     setIsEdit(true);
-    setDepartment(dept);
-    validation.setValues({ name: dept.name });
+    setDesignation(desig);
     toggleList();
   };
 
-  const handleDeleteClick = (dept: Department) => {
-    setDepartment(dept);
+  const handleDeleteClick = (desig: Designation) => {
+    setDesignation(desig);
     toggleDelete();
   };
 
   const handleBulkDelete = async () => {
-    if (window.confirm(`Are you sure you want to delete ${selectedDepts.length} departments?`)) {
+    if (window.confirm(`Are you sure you want to delete ${selectedDesigns.length} designations?`)) {
       try {
-        await Promise.all(selectedDepts.map((id) => deleteDepartment(id)));
-        setSelectedDepts([]);
+        await Promise.all(selectedDesigns.map((id) => deleteDesignation(id)));
+        setSelectedDesigns([]);
       } catch (error) {
         console.error("Bulk delete failed", error);
       }
@@ -111,29 +117,62 @@ const DepartmentSettings = () => {
 
   const validation = useFormik({
     enableReinitialize: true,
-    initialValues: { name: (department && department.name) || "" },
+    initialValues: { 
+        title: designation?.title || "",
+        department_id: designation?.department_id || ""},
     validationSchema: Yup.object({
-      name: Yup.string().required("Please enter a department name"),
+      title: Yup.string().required("Please enter a designation title"),
+      department_id: Yup.number()
+        .required("Please select a department")
+        .typeError("Please select a valid department"),
     }),
     onSubmit: async (values) => {
       try {
-        if (isEdit && department) {
-          await updateDepartment({ id: department.id, data: values });
+        if (isEdit && designation) {
+            const updatedData: Partial<DesignationPayload> = {};
+
+            if (values.title !== validation.initialValues.title) {
+                updatedData.title = values.title;
+            }
+            if (
+                Number(values.department_id) !== 
+                Number(validation.initialValues.department_id)
+            ) {
+                updatedData.department_id = Number(values.department_id)
+
+            }
+            if (Object.keys(updatedData).length === 0) {
+                toggleList();
+                return;
+            }
+
+            await updateDesignation({ 
+                id: designation.id, 
+                data: updatedData,
+            });
         } else {
-          await createDepartment(values);
+            const payload: DesignationPayload = {
+                title: values.title,
+                department_id: Number(values.department_id),
+            };
+            await createDesignation(payload);
         }
+
         validation.resetForm();
         toggleList();
-      } catch (error) {
-        console.error("Submission error:", error);
+      } catch (error: any) {
+        if (typeof error === "object") {
+            validation.setErrors(error);
+            return;
+        }
       }
     },
   });
 
   const executeDelete = async () => {
-    if (department) {
+    if (designation) {
       try {
-        await deleteDepartment(department.id);
+        await deleteDesignation(designation.id);
         toggleDelete();
       } catch (error) {
         console.error("Delete error:", error);
@@ -149,17 +188,17 @@ const DepartmentSettings = () => {
             <CardHeader className="border-0">
               <Row className="align-items-center gy-3">
                 <Col sm={3}>
-                  <h5 className="card-title mb-0">Departments</h5>
+                  <h5 className="card-title mb-0">Designations</h5>
                 </Col>
                 <Col sm={"auto"} className="ms-auto">
                   <div className="d-flex gap-2 flex-wrap">
-                    {selectedDepts.length > 0 && (
+                    {selectedDesigns.length > 0 && (
                       <Button color="soft-danger" onClick={handleBulkDelete}>
                         <i className="ri-delete-bin-2-line"></i>
                       </Button>
                     )}
                     <Button color="success" onClick={handleAddClick} id="create-btn">
-                      <i className="ri-add-line align-bottom me-1"></i> Add Department
+                      <i className="ri-add-line align-bottom me-1"></i> Add Designation
                     </Button>
                   </div>
                 </Col>
@@ -178,7 +217,7 @@ const DepartmentSettings = () => {
                       value={searchTerm}
                       onChange={(e) => {
                         setSearchTerm(e.target.value);
-                        setCurrentPage(1); // Reset to first page on search
+                        setCurrentPage(1);
                       }}
                     />
                     <i className="ri-search-line search-icon"></i>
@@ -204,39 +243,39 @@ const DepartmentSettings = () => {
                                 className="form-check-input"
                                 type="checkbox"
                                 onChange={handleSelectAll}
-                                checked={currentItems.length > 0 && selectedDepts.length === currentItems.length}
+                                checked={currentItems.length > 0 && selectedDesigns.length === currentItems.length}
                               />
                             </div>
                           </th>
-                          <th>Department Name</th>
-                          <th>Created At</th>
+                          <th>Title</th>
+                          <th>Department</th>
                           <th className="text-end">Action</th>
                         </tr>
                       </thead>
                       <tbody className="list">
-                        {currentItems.map((dept: Department) => (
-                          <tr key={dept.id}>
+                        {currentItems.map((desig: Designation) => (
+                          <tr key={desig.id}>
                             <td>
                               <div className="form-check">
                                 <input
                                   className="form-check-input"
                                   type="checkbox"
-                                  checked={selectedDepts.includes(dept.id)}
-                                  onChange={() => handleSelectOne(dept.id)}
+                                  checked={selectedDesigns.includes(desig.id)}
+                                  onChange={() => handleSelectOne(desig.id)}
                                 />
                               </div>
                             </td>
-                            <td className="fw-medium">{dept.name}</td>
-                            <td>{new Date(dept.created_at).toLocaleDateString()}</td>
+                            <td className="fw-medium">{desig.title}</td>
+                            <td>{desig.department_name || "-"} </td>
                             <td className="text-end">
                               <ul className="list-inline hstack gap-2 justify-content-end mb-0">
                                 <li className="list-inline-item">
-                                  <button className="btn btn-sm btn-soft-info" onClick={() => handleEditClick(dept)}>
+                                  <button className="btn btn-sm btn-soft-info" onClick={() => handleEditClick(desig)}>
                                     <i className="ri-pencil-fill" />
                                   </button>
                                 </li>
                                 <li className="list-inline-item">
-                                  <button className="btn btn-sm btn-soft-danger" onClick={() => handleDeleteClick(dept)}>
+                                  <button className="btn btn-sm btn-soft-danger" onClick={() => handleDeleteClick(desig)}>
                                     <i className="ri-delete-bin-fill" />
                                   </button>
                                 </li>
@@ -246,24 +285,24 @@ const DepartmentSettings = () => {
                         ))}
                       </tbody>
                     </Table>
-                    {filteredDepartments.length === 0 && (
+                    {filteredDesignations.length === 0 && (
                       <div className="noresult text-center py-5">
                         <i className="ri-search-line display-5 text-light"></i>
-                        <h5 className="mt-2">No Department Found</h5>
+                        <h5 className="mt-2">No Designation Found</h5>
                       </div>
                     )}
                   </div>
 
                   {/* FOOTER: ENTRIES INFO & PAGINATION */}
-                  {!isLoading && filteredDepartments.length > 0 && (
+                  {!isLoading && filteredDesignations.length > 0 && (
                     <Row className="align-items-center mt-3 g-3 text-center text-sm-start">
                       <Col sm>
                         <div className="text-muted">
                           Showing <span className="fw-semibold">{indexOfFirstItem + 1}</span> to{" "}
                           <span className="fw-semibold">
-                            {Math.min(indexOfLastItem, filteredDepartments.length)}
+                            {Math.min(indexOfLastItem, filteredDesignations.length)}
                           </span>{" "}
-                          of <span className="fw-semibold">{filteredDepartments.length}</span> entries
+                          of <span className="fw-semibold">{filteredDesignations.length}</span> entries
                         </div>
                       </Col>
                       <Col sm="auto">
@@ -300,17 +339,34 @@ const DepartmentSettings = () => {
         <Form onSubmit={(e) => { e.preventDefault(); validation.handleSubmit(); }}>
           <ModalBody>
             <div className="mb-3">
-              <Label htmlFor="name" className="form-label">Department Name</Label>
+              <Label htmlFor="title" className="form-label">Designation Title</Label>
               <Input
-                name="name"
+                name="title"
                 type="text"
-                placeholder="Enter department name"
+                placeholder="Enter designation title"
                 onChange={validation.handleChange}
                 onBlur={validation.handleBlur}
-                value={validation.values.name}
-                invalid={validation.touched.name && !!validation.errors.name}
+                value={validation.values.title}
+                invalid={validation.touched.title && !!validation.errors.title}
               />
-              <FormFeedback>{validation.errors.name}</FormFeedback>
+              <FormFeedback>{validation.errors.title}</FormFeedback>
+            </div>
+            <div>
+                <Label htmlFor="department_id" className="form-label">Department</Label>
+                <Input
+                    type="select"
+                    name="department_id"
+                    value={validation.values.department_id}
+                    onChange={validation.handleChange}
+                    onBlur={validation.handleBlur}
+                    invalid={validation.touched.department_id && !!validation.errors.department_id}
+                >
+                    <option value="">Select Department</option>
+                    {departments?.map((dept) => (
+                        <option key={dept.id} value={dept.id}>{dept.name}</option>
+                    ))}
+                </Input>
+                <FormFeedback>{validation.errors.department_id}</FormFeedback>
             </div>
           </ModalBody>
           <div className="modal-footer">
@@ -330,7 +386,7 @@ const DepartmentSettings = () => {
           <div className="mt-4">
             <h4 className="mb-3">Are you sure?</h4>
             <p className="text-muted mb-4">
-              Delete <b>{department?.name}</b>? This action cannot be undone.
+              Delete <b>{designation?.title}</b>? This action cannot be undone.
             </p>
             <div className="hstack gap-2 justify-content-center">
               <Button color="light" onClick={toggleDelete}>Cancel</Button>
@@ -345,4 +401,4 @@ const DepartmentSettings = () => {
   );
 };
 
-export default DepartmentSettings;
+export default DesignationSettings;

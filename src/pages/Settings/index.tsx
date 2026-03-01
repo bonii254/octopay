@@ -15,11 +15,10 @@ import {
   BreadcrumbItem,
 } from "reactstrap";
 import classnames from "classnames";
-import { Link } from "react-router-dom"; // Assuming react-router
+import { Link } from "react-router-dom";
 
-// Import Sections (Keep your existing imports)
 import CompanyProfile from "./components/company/CompanyProfile";
-import OrgStructure from "./components/department/OrgStructure";
+import CompanyStructureSettings from "./components/department/CompanyStructureSettings";
 import StatutoryConfig from "./components/StatutoryConfig";
 import PayrollMaster from "./components/PayrollMaster";
 import LeaveLoanRules from "./components/LeaveLoanRules";
@@ -27,7 +26,6 @@ import LeaveLoanRules from "./components/LeaveLoanRules";
 const SettingsHub = () => {
   const [activeTab, setActiveTab] = useState("1");
 
-  // Helper to get current tab title for the Right Side Header
   const getActiveTitle = () => {
     switch (activeTab) {
       case "1":
@@ -255,7 +253,7 @@ const SettingsHub = () => {
                     <CompanyProfile />
                   </TabPane>
                   <TabPane tabId="2">
-                    <OrgStructure />
+                    <CompanyStructureSettings />
                   </TabPane>
                   <TabPane tabId="3">
                     <div className="text-center p-5">

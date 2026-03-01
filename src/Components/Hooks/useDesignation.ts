@@ -69,9 +69,9 @@ export const useDesignationMutation = () => {
     });
 
     return {
-        createMutation: createMutation.mutateAsync,
-        updateMutation: updateMutation.mutateAsync,
-        deleteMutation: deleteMutation.mutateAsync,
+        createDesignation: createMutation.mutateAsync,
+        updateDesignation: updateMutation.mutateAsync,
+        deleteDesignation: deleteMutation.mutateAsync,
 
         isCreating: createMutation.isPending,
         isUpdating: updateMutation.isPending,

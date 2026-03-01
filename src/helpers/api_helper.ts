@@ -75,8 +75,11 @@ axios.interceptors.response.use(
     let message = "Something went wrong";
     if (error.response) {
        const data = error.response.data;
-       if (data && data.error) message = data.error;
-       else if (data && data.message) message = data.message;
+       if (data?.errors) {
+         return Promise.reject(data.errors);
+       }
+       if (data?.error) message = data.error;
+       else if (data?.message) message = data.message;
        else if (data && data.errors) message = JSON.stringify(data.errors);
     } else if (error.request) {
        message = "Network Error: Could not reach the server";
