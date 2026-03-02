@@ -22,6 +22,7 @@ import CompanyStructureSettings from "./components/department/CompanyStructureSe
 import StatutoryConfig from "./components/StatutoryConfig";
 import PayrollMaster from "./components/PayrollMaster";
 import LeaveLoanRules from "./components/LeaveLoanRules";
+import TaxBandSettings from "./components/TaxBandConfig"
 
 const SettingsHub = () => {
   const [activeTab, setActiveTab] = useState("1");
@@ -39,6 +40,8 @@ const SettingsHub = () => {
       case "5":
         return "Payroll Components";
       case "6":
+        return "Tax Bands";
+      case "7":
         return "Leave & Loan Rules";
       default:
         return "Settings";
@@ -173,7 +176,7 @@ const SettingsHub = () => {
                         <div className="flex-grow-1">
                           <h5 className="mb-0 fs-14">Statutory</h5>
                           <p className="mb-0 fs-12 text-muted">
-                            KRA, NSSF, NHIF Rates
+                            KRA, NSSF, NHIF Rates and taxes
                           </p>
                         </div>
                       </div>
@@ -196,7 +199,30 @@ const SettingsHub = () => {
                         <div className="flex-grow-1">
                           <h5 className="mb-0 fs-14">Pay Components</h5>
                           <p className="mb-0 fs-12 text-muted">
-                            Earnings, Deductions & Tax
+                            Earnings, Deductions
+                          </p>
+                        </div>
+                      </div>
+                    </NavLink>
+                  </NavItem>
+
+                  <NavItem className="mb-3">
+                    <NavLink
+                      style={{ cursor: "pointer" }}
+                      className={classnames({
+                        "active bg-light text-primary": activeTab === "6",
+                        "text-body": activeTab !== "6",
+                      })}
+                      onClick={() => toggleTab("6")}
+                    >
+                      <div className="d-flex align-items-center">
+                        <div className="flex-shrink-0">
+                          <i className="ri-percent-line fs-18 me-3"></i>
+                        </div>
+                        <div className="flex-grow-1">
+                          <h5 className="mb-0 fs-14">Income Tax (PAYE)</h5>
+                          <p className="mb-0 fs-12 text-muted">
+                            Progressive tax brackets & bands
                           </p>
                         </div>
                       </div>
@@ -212,10 +238,10 @@ const SettingsHub = () => {
                     <NavLink
                       style={{ cursor: "pointer" }}
                       className={classnames({
-                        "active bg-light text-primary": activeTab === "6",
-                        "text-body": activeTab !== "6",
+                        "active bg-light text-primary": activeTab === "7",
+                        "text-body": activeTab !== "7",
                       })}
-                      onClick={() => toggleTab("6")}
+                      onClick={() => toggleTab("7")}
                     >
                       <div className="d-flex align-items-center">
                         <div className="flex-shrink-0">
@@ -272,6 +298,9 @@ const SettingsHub = () => {
                     <PayrollMaster />
                   </TabPane>
                   <TabPane tabId="6">
+                    <TaxBandSettings />
+                  </TabPane>
+                  <TabPane tabId="7">
                     <LeaveLoanRules />
                   </TabPane>
                 </TabContent>

@@ -7,10 +7,10 @@ import {
 import { SalaryComponentService } from "../../services/salaryComponent"
 import {
     SalaryComponentBase,
+    SalaryComponent,
     CreateSalaryComponentRequest,
     UpdateSalaryComponentRequest
 } from "../../types/salaryComponent"
-import { statutoryKeys } from "./useStatutory";
 
 
 export const salaryComponentKeys = {
@@ -25,9 +25,9 @@ export const salaryComponentKeys = {
 
 export const useSalaryComponents = (
     params?: Record<string, unknown>,
-    options?: Omit<UseQueryOptions<SalaryComponentBase[]>,  "queryKey" | "queryFn">
+    options?: Omit<UseQueryOptions<SalaryComponent[]>,  "queryKey" | "queryFn">
 ) => {
-    return useQuery<SalaryComponentBase[]>({
+    return useQuery<SalaryComponent[]>({
         queryKey: salaryComponentKeys.list(params),
         queryFn: () => SalaryComponentService.getAllComponents(),
         ...options,
@@ -66,14 +66,14 @@ export const useSalaryComponentMutation = () => {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => SalaryComponentService.deleteComponent(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: statutoryKeys.all });
+      queryClient.invalidateQueries({ queryKey: salaryComponentKeys.all });
     },
   });
 
   return {
-    createStatutoryConfig: createMutation.mutateAsync,
-    updateStatutoryConfig: updateMutation.mutateAsync,
-    deleteStatutoryConfig: deleteMutation.mutateAsync,
+    createSalaryComponent: createMutation.mutateAsync,
+    updateSalaryComponent: updateMutation.mutateAsync,
+    deleteSalaryComponent: deleteMutation.mutateAsync,
 
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
