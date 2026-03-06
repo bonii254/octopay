@@ -1,3 +1,5 @@
+import * as React from 'react';
+
 declare module 'aos';
 declare module 'react-rating';
 declare module 'cleave.js/react';
@@ -12,3 +14,20 @@ declare module 'react-scrollspy';
 declare module 'react-select';
 declare module 'react-dragula';
 declare module "react-beautiful-dnd";
+
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'lord-icon': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        src?: string;
+        trigger?: string;
+        colors?: string;
+        delay?: string;
+        state?: string;
+        target?: string;
+        stroke?: string;
+      };
+    }
+  }
+}
