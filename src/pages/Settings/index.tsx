@@ -23,6 +23,7 @@ import StatutoryConfig from "./components/StatutoryConfig";
 import PayrollMaster from "./components/PayrollMaster";
 import LeaveLoanRules from "./components/LeaveLoanRules";
 import TaxBandSettings from "./components/TaxBandConfig"
+import LoanTypeSettings from "./components/department/loanTypes"
 
 const SettingsHub = () => {
   const [activeTab, setActiveTab] = useState("1");
@@ -43,6 +44,8 @@ const SettingsHub = () => {
         return "Tax Bands";
       case "7":
         return "Leave & Loan Rules";
+      case "8":
+        return "Loan Types"
       default:
         return "Settings";
     }
@@ -55,7 +58,6 @@ const SettingsHub = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        {/* 1. Page Header with Breadcrumbs */}
         <Row>
           <Col xs={12}>
             <div className="page-title-box d-sm-flex align-items-center justify-content-between">
@@ -73,7 +75,6 @@ const SettingsHub = () => {
         </Row>
 
         <Row>
-          {/* 2. LEFT SIDEBAR: Navigation */}
           <Col lg={3}>
             <Card>
               <CardHeader>
@@ -81,7 +82,6 @@ const SettingsHub = () => {
               </CardHeader>
               <CardBody>
                 <Nav pills vertical className="nav-pills-custom">
-                  {/* Section: Organization */}
                   <div className="p-2 text-muted text-uppercase fw-bold fs-12 mb-1">
                     Organization
                   </div>
@@ -155,7 +155,6 @@ const SettingsHub = () => {
                     </NavLink>
                   </NavItem>
 
-                  {/* Section: Payroll */}
                   <div className="p-2 text-muted text-uppercase fw-bold fs-12 mb-1 border-top">
                     Payroll & Finance
                   </div>
@@ -229,7 +228,6 @@ const SettingsHub = () => {
                     </NavLink>
                   </NavItem>
 
-                  {/* Section: HR */}
                   <div className="p-2 text-muted text-uppercase fw-bold fs-12 mb-1 border-top">
                     HR Rules
                   </div>
@@ -248,9 +246,32 @@ const SettingsHub = () => {
                           <i className="ri-calendar-check-line fs-18 me-3"></i>
                         </div>
                         <div className="flex-grow-1">
-                          <h5 className="mb-0 fs-14">Leave & Loans</h5>
+                          <h5 className="mb-0 fs-14">Leave</h5>
                           <p className="mb-0 fs-12 text-muted">
                             Policies & Entitlements
+                          </p>
+                        </div>
+                      </div>
+                    </NavLink>
+                  </NavItem>
+
+                  <NavItem className="mb-2 mt-2">
+                    <NavLink
+                      style={{ cursor: "pointer" }}
+                      className={classnames({
+                        "active bg-light text-primary": activeTab === "8", 
+                        "text-body": activeTab !== "8",
+                      })}
+                      onClick={() => toggleTab("8")}
+                    >
+                      <div className="d-flex align-items-center">
+                        <div className="flex-shrink-0">
+                          <i className="ri-money-dollar-circle-line fs-18 me-3"></i>
+                        </div>
+                        <div className="flex-grow-1">
+                          <h5 className="mb-0 fs-14">Loan Types</h5>
+                          <p className="mb-0 fs-12 text-muted">
+                            Interest, Tenure & Limits
                           </p>
                         </div>
                       </div>
@@ -261,16 +282,13 @@ const SettingsHub = () => {
             </Card>
           </Col>
 
-          {/* 3. RIGHT CONTENT AREA */}
           <Col lg={9}>
             <Card>
               <CardHeader className="align-items-center d-flex">
-                {/* Dynamic Header based on selection */}
                 <h4 className="card-title mb-0 flex-grow-1">
                   {getActiveTitle()}
                 </h4>
                 <div className="flex-shrink-0">
-                  {/* Optional: Add a 'Save' or 'Action' button common to all tabs here if needed */}
                 </div>
               </CardHeader>
               <CardBody>
@@ -302,6 +320,9 @@ const SettingsHub = () => {
                   </TabPane>
                   <TabPane tabId="7">
                     <LeaveLoanRules />
+                  </TabPane>
+                  <TabPane tabId="8">
+                    <LoanTypeSettings />
                   </TabPane>
                 </TabContent>
               </CardBody>
