@@ -1,354 +1,206 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import {
-  Card,
-  CardBody,
-  Col,
-  Row,
-  Input,
-  Label,
-  Button,
-  Form,
-  FormFeedback,
-  Spinner,
-  Modal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
+  Card, CardBody, Col, Row, Container, Input, Label, Button, 
+  Nav, NavItem, NavLink, TabContent, TabPane, FormFeedback, Spinner, Alert
 } from "reactstrap";
+import classnames from "classnames";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { toast } from "react-toastify";
-import {
-  useGetCompany,
-  useSaveCompany,
-  useDeleteCompany,
-} from "../../../../Components/Hooks/useCompanyProfile";
+import { useCompany, useCompanyMutation } from "../../../../Components/Hooks/useCompany";
+import { handleBackendErrors } from "../../../../helpers/form_utils";
 
-const CompanyProfile: React.FC = () => {
-  const { data: companyData, isLoading: isFetching } = useGetCompany();
-  const isUpdateMode = !!companyData;
-
-  const { mutate: saveCompany, isPending: isSaving } =
-    useSaveCompany(isUpdateMode);
-  const { mutate: deleteCompany, isPending: isDeleting } = useDeleteCompany();
-
+const CompanySettings = () => {
+  const { data: company, isLoading } = useCompany();
+  const { updateCompany, isUpdating } = useCompanyMutation();
+  
+  const [activeTab, setActiveTab] = useState("1");
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [deleteModal, setDeleteModal] = useState(false);
+  const [globalError, setGlobalError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (companyData?.logo) {
-      setLogoPreview(companyData.logo);
-    }
-  }, [companyData]);
+  const toggleTab = (tab: string) => {
+    if (activeTab !== tab) setActiveTab(tab);
+  };
 
-  const validation = useFormik({
+  const UPLOAD_URL = `${process.env.REACT_APP_API_URL}/static/uploads/logo`;
+  
+  const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      name: companyData?.name || "",
-      prefix: companyData?.prefix || "",
-      contact_email: companyData?.contact_email || "",
-      contact_phone: companyData?.contact_phone || "",
-      address: companyData?.address || "",
-      fiscal_year_start: companyData?.fiscal_year_start || "",
+      name: company?.name || "",
+      prefix: company?.prefix || "",
+      address: company?.address || "",
+      contact_email: company?.contact_email || "",
+      contact_phone: company?.contact_phone || "",
+      fiscal_year_start: company?.fiscal_year_start || "",
+      logo: null as File | null,
     },
     validationSchema: Yup.object({
-      name: Yup.string().min(2).max(255).required("Company name is required"),
-      prefix: Yup.string().max(10).required("Prefix is required"),
-      contact_email: Yup.string()
-        .email("Invalid email")
-        .required("Contact email is required"),
-      contact_phone: Yup.string().required("Contact phone is required"),
-      address: Yup.string()
-        .min(5)
-        .max(255)
-        .required("Company address is required"),
-      fiscal_year_start: Yup.date().required(
-        "Fiscal year start date is required",
-      ),
+      name: Yup.string().required("Organization name is required"),
+      contact_email: Yup.string().email().required("Email is required"),
+      contact_phone: Yup.string().required("Phone is required"),
     }),
-    onSubmit: (values) => {
-      const formData = new FormData();
-
-      Object.entries(values).forEach(([key, value]) => {
-        formData.append(key, value as string);
-      });
-
-      if (logoFile) {
-        formData.append("logo", logoFile);
+    onSubmit: async (values) => {
+      try {
+        setGlobalError(null);
+        // Dirty checking logic here...
+        await updateCompany(values);
+      } catch (error: any) {
+        handleBackendErrors(error, formik.setErrors, setGlobalError);
       }
-
-      saveCompany(formData, {
-        onSuccess: () => {
-          toast.success("Company profile saved successfully");
-        },
-        onError: (err: any) => {
-          const responseData = err?.response?.data;
-
-          if (responseData?.errors) {
-            const formattedErrors: Record<string, string> = {};
-
-            Object.keys(responseData.errors).forEach((key) => {
-              formattedErrors[key] = responseData.errors[key][0];
-            });
-
-            validation.setErrors(formattedErrors);
-          } else {
-            toast.error(
-              responseData?.error || "Failed to save company profile",
-            );
-          }
-        },
-      });
     },
   });
 
-  if (isFetching) {
-    return (
-      <div className="text-center p-5">
-        <Spinner color="primary" />
-      </div>
-    );
-  }
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      formik.setFieldValue("logo", file);
+      setLogoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  // Construct URL for existing logo from Flask static folder
+  const currentLogoUrl = company?.logo_url && company.logo_url !== 'default.jpg' 
+    ? `${process.env.REACT_APP_API_URL}/static/uploads/logo/${company.logo_url}`
+    : "/assets/images/users/multi-user.jpg"; // Placeholder
+
+  if (isLoading) return <Spinner color="primary" className="m-5" />;
 
   return (
-    <div className="position-relative mx-n4 mt-n4 px-4 pt-4">
-      <div
-        className="profile-foreground position-absolute top-0 start-0 end-0 bg-primary bg-gradient"
-        style={{ height: "160px" }}
-      ></div>
-
-      <Row className="justify-content-center mt-5">
-        <Col xxl={9}>
-          <Card className="shadow-lg border-0 mb-4">
-            <CardBody className="p-0">
-              {/* Header + Logo */}
-              <div className="p-4 pb-0">
-                <Row className="align-items-end g-3">
-                  <Col xs="auto">
-                    <div className="position-relative d-inline-block mb-2">
+    <div className="page-content">
+      <Container fluid>
+        <Row>
+          <Col lg={12}>
+            {/* Header Section */}
+            <Card className="mt-n4 mx-n4 border-0 rounded-0 bg-soft-primary">
+              <CardBody className="pb-0 px-4">
+                <Row className="mb-3">
+                  <Col md="auto">
+                    <div className="profile-user position-relative d-inline-block mx-auto mb-4">
                       <img
-                        src={logoPreview || "https://placehold.co/200x200"}
-                        className="rounded-circle avatar-xl img-thumbnail shadow object-fit-cover border-4 border-white"
-                        style={{
-                          width: "110px",
-                          height: "110px",
-                          marginTop: "-30px",
-                        }}
-                        alt="logo"
+                        src={logoPreview || currentLogoUrl}
+                        className="rounded-circle avatar-xl img-thumbnail user-profile-image"
+                        alt="user-profile"
+                        style={{ objectFit: 'cover' }}
                       />
-
-                      <Input
-                        id="logo-input"
-                        type="file"
-                        className="d-none"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setLogoFile(file);
-                            const reader = new FileReader();
-                            reader.onload = () =>
-                              setLogoPreview(reader.result as string);
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                      />
-
-                      <Label
-                        htmlFor="logo-input"
-                        className="position-absolute bottom-0 end-0 bg-white rounded-circle p-2 shadow cursor-pointer"
-                      >
-                        ✏️
-                      </Label>
+                      <div className="avatar-xs p-0 rounded-circle profile-photo-edit">
+                        <input 
+                          id="profile-img-file-input" 
+                          type="file" 
+                          ref={fileInputRef}
+                          className="profile-img-file-input" 
+                          onChange={handleLogoChange} 
+                        />
+                        <label htmlFor="profile-img-file-input" className="profile-photo-edit avatar-xs">
+                          <span className="avatar-title rounded-circle bg-light text-body shadow">
+                            <i className="ri-camera-fill"></i>
+                          </span>
+                        </label>
+                      </div>
                     </div>
                   </Col>
-
-                  <Col className="pb-3">
-                    <h3 className="text-white mb-1">
-                      {validation.values.name || "Company Profile"}
-                    </h3>
+                  <Col>
+                    <div className="p-2">
+                      <h3 className="text-white mb-1">{company?.name || "Register Organization"}</h3>
+                      <p className="text-white-75">ID Prefix: <span className="fw-bold">{company?.prefix}</span></p>
+                      <div className="hstack text-white-75 gap-3">
+                        <div><i className="ri-building-line me-1 align-bottom"></i> {company?.address}</div>
+                        <div><i className="ri-mail-line me-1 align-bottom"></i> {company?.contact_email}</div>
+                      </div>
+                    </div>
                   </Col>
                 </Row>
-              </div>
 
-              {/* Form Section */}
-              <div className="p-4 bg-light bg-opacity-50 mt-4">
-                <Form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    validation.handleSubmit();
-                  }}
-                >
-                  <Row className="g-4">
-                    <Col md={6}>
-                      <Label>Company Name</Label>
-                      <Input
-                        {...validation.getFieldProps("name")}
-                        invalid={
-                          validation.touched.name && !!validation.errors.name
-                        }
-                      />
-
-                      <FormFeedback>
-                        {typeof validation.errors.name === "string"
-                          ? validation.errors.name
-                          : ""}
-                      </FormFeedback>
-                    </Col>
-
-                    <Col md={6}>
-                      <Label>Prefix</Label>
-                      <Input
-                        {...validation.getFieldProps("prefix")}
-                        invalid={
-                          validation.touched.prefix &&
-                          !!validation.errors.prefix
-                        }
-                      />
-                      <FormFeedback>
-                        {typeof validation.errors.prefix === "string"
-                          ? validation.errors.prefix
-                          : ""}
-                      </FormFeedback>
-                    </Col>
-
-                    <Col md={6}>
-                      <Label>Contact Email</Label>
-                      <Input
-                        type="email"
-                        {...validation.getFieldProps("contact_email")}
-                        invalid={
-                          validation.touched.contact_email &&
-                          !!validation.errors.contact_email
-                        }
-                      />
-                      <FormFeedback>
-                        {typeof validation.errors.contact_email === "string"
-                          ? validation.errors.contact_email
-                          : ""}
-                      </FormFeedback>
-                    </Col>
-
-                    <Col md={6}>
-                      <Label>Contact Phone</Label>
-                      <Input
-                        {...validation.getFieldProps("contact_phone")}
-                        invalid={
-                          validation.touched.contact_phone &&
-                          !!validation.errors.contact_phone
-                        }
-                      />
-                      <FormFeedback>
-                        {typeof validation.errors.contact_phone === "string"
-                          ? validation.errors.contact_phone
-                          : ""}
-                      </FormFeedback>
-                    </Col>
-
-                    <Col md={6}>
-                      <Label>Fiscal Year Start</Label>
-                      <Input
-                        type="date"
-                        {...validation.getFieldProps("fiscal_year_start")}
-                        invalid={
-                          validation.touched.fiscal_year_start &&
-                          !!validation.errors.fiscal_year_start
-                        }
-                      />
-                      <FormFeedback>
-                        {typeof validation.errors.fiscal_year_start === "string"
-                          ? validation.errors.fiscal_year_start
-                          : ""}
-                      </FormFeedback>
-                    </Col>
-
-                    <Col md={12}>
-                      <Label>Address</Label>
-                      <Input
-                        type="textarea"
-                        rows={3}
-                        {...validation.getFieldProps("address")}
-                        invalid={
-                          validation.touched.address &&
-                          !!validation.errors.address
-                        }
-                      />
-                      <FormFeedback>
-                        {typeof validation.errors.address === "string"
-                          ? validation.errors.address
-                          : ""}
-                      </FormFeedback>
-                    </Col>
-
-                    <Col md={12} className="text-end border-top pt-4">
-                      <Button color="primary" type="submit" disabled={isSaving}>
-                        {isSaving ? (
-                          <Spinner size="sm" />
-                        ) : isUpdateMode ? (
-                          "Update Profile"
-                        ) : (
-                          "Create Profile"
-                        )}
-                      </Button>
-                    </Col>
-                  </Row>
-                </Form>
-              </div>
-
-              {/* Delete Section */}
-              {isUpdateMode && (
-                <div className="p-4 border-top border-dashed">
-                  <div className="d-flex justify-content-between align-items-center p-3 border border-danger rounded bg-danger bg-opacity-10">
-                    <p className="fw-semibold mb-0 text-danger">
-                      Delete Company
-                    </p>
-
-                    <Button
-                      color="danger"
-                      outline
-                      onClick={() => setDeleteModal(true)}
+                {/* Tab Navigation */}
+                <Nav tabs className="nav-tabs-custom border-bottom-0">
+                  <NavItem>
+                    <NavLink
+                      className={classnames({ active: activeTab === "1" })}
+                      onClick={() => toggleTab("1")}
+                      style={{ cursor: "pointer" }}
                     >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardBody>
-          </Card>
-        </Col>
-      </Row>
+                      General Info
+                    </NavLink>
+                  </NavItem>
+                  <NavItem>
+                    <NavLink
+                      className={classnames({ active: activeTab === "2" })}
+                      onClick={() => toggleTab("2")}
+                      style={{ cursor: "pointer" }}
+                    >
+                      Fiscal & Compliance
+                    </NavLink>
+                  </NavItem>
+                </Nav>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
 
-      {/* Delete Modal */}
-      <Modal isOpen={deleteModal} toggle={() => setDeleteModal(false)} centered>
-        <ModalHeader toggle={() => setDeleteModal(false)}>
-          Delete Company
-        </ModalHeader>
-        <ModalBody>Are you sure? This action is permanent.</ModalBody>
-        <ModalFooter>
-          <Button color="light" onClick={() => setDeleteModal(false)}>
-            Cancel
-          </Button>
+        <Row className="mt-4">
+          <Col lg={12}>
+            <TabContent activeTab={activeTab}>
+              <TabPane tabId="1">
+                <Card>
+                  <CardBody>
+                    <h5 className="card-title mb-4">Organization Details</h5>
+                    <form onSubmit={formik.handleSubmit}>
+                      <Row className="g-3">
+                        <Col lg={6}>
+                          <Label>Legal Name</Label>
+                          <Input {...formik.getFieldProps("name")} invalid={!!formik.errors.name} />
+                          <FormFeedback>{formik.errors.name}</FormFeedback>
+                        </Col>
+                        <Col lg={6}>
+                          <Label>ID Prefix (for Employee IDs)</Label>
+                          <Input {...formik.getFieldProps("prefix")} />
+                        </Col>
+                        <Col lg={6}>
+                          <Label>Contact Email</Label>
+                          <Input {...formik.getFieldProps("contact_email")} />
+                        </Col>
+                        <Col lg={6}>
+                          <Label>Contact Phone</Label>
+                          <Input {...formik.getFieldProps("contact_phone")} placeholder="+254..." />
+                        </Col>
+                        <Col lg={12}>
+                          <Label>Headquarters Address</Label>
+                          <Input type="textarea" rows={3} {...formik.getFieldProps("address")} />
+                        </Col>
+                        <Col lg={12} className="text-end">
+                          <Button color="primary" type="submit" disabled={isUpdating}>
+                            {isUpdating ? <Spinner size="sm" /> : "Save Changes"}
+                          </Button>
+                        </Col>
+                      </Row>
+                    </form>
+                  </CardBody>
+                </Card>
+              </TabPane>
 
-          <Button
-            color="danger"
-            disabled={isDeleting}
-            onClick={() =>
-              deleteCompany(undefined, {
-                onSuccess: () => {
-                  setDeleteModal(false);
-                  validation.resetForm();
-                  toast.success("Company deleted");
-                },
-              })
-            }
-          >
-            {isDeleting ? <Spinner size="sm" /> : "Delete"}
-          </Button>
-        </ModalFooter>
-      </Modal>
+              <TabPane tabId="2">
+                <Card>
+                  <CardBody>
+                    <h5 className="card-title mb-4">Fiscal Configuration</h5>
+                    <Row>
+                      <Col lg={4}>
+                        <Label>Fiscal Year Start Date</Label>
+                        <Input 
+                          type="date" 
+                          {...formik.getFieldProps("fiscal_year_start")} 
+                          className="form-control"
+                        />
+                      </Col>
+                    </Row>
+                  </CardBody>
+                </Card>
+              </TabPane>
+            </TabContent>
+          </Col>
+        </Row>
+      </Container>
     </div>
   );
 };
 
-export default CompanyProfile;
+export default CompanySettings;

@@ -1,192 +1,221 @@
-import React, { useState } from "react";
-import {
-  Card,
-  CardBody,
-  CardHeader,
-  Col,
-  Row,
-  Table,
-  Button,
-  Badge,
-  Input,
-  Modal,
-  ModalHeader,
-  ModalBody,
-  Label,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
-} from "reactstrap";
-import { useFormik } from "formik";
-import * as Yup from "yup";
+import React, { useState } from 'react';
+import { 
+  Button, Table, Modal, ModalHeader, ModalBody, ModalFooter, 
+  Form, FormGroup, Label, Input, FormFeedback, Spinner, Alert, InputGroup  
+} from 'reactstrap';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import { useUsers, useUserMutation } from '../../../Components/Hooks/useUsers';
+import { User, UserRole, UserPayload, UpdateUserRequest } from '../../../types/user';
+import { handleBackendErrors } from '../../../helpers/form_utils';
 
-// Mock Data
-const mockUsers = [
-  { id: 1, username: "admin_jane", email: "jane@company.com", role: "ADMIN", status: true, last_login: "2 hrs ago" },
-  { id: 2, username: "hr_mike", email: "mike@company.com", role: "HR_MANAGER", status: true, last_login: "1 day ago" },
-  { id: 3, username: "emp_john", email: "john.d@company.com", role: "EMPLOYEE", status: false, last_login: "Never" },
-];
+
+interface FormValues extends UserPayload {
+  confirm_password?: string;
+}
 
 const UserManagement = () => {
-  const [modal, setModal] = useState(false);
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useUsers(page, 10);
+  const { createUser, updateUser, deleteUser, isCreating, isUpdating, isDeleting } = useUserMutation();
 
-  const validation = useFormik({
-    initialValues: {
-      username: "",
-      email: "",
-      role: "EMPLOYEE",
-      password: "",
-    },
+  const [modalOpen, setModalOpen] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [globalError, setGlobalError] = useState<string | null>(null);
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const formik = useFormik<FormValues>({
+    initialValues: { 
+      username: '',
+      email: '', 
+      password: '', 
+      confirm_password:'',
+      role: UserRole.EMPLOYEE },
     validationSchema: Yup.object({
-      username: Yup.string().required("Username is required"),
-      email: Yup.string().email().required("Email is required"),
-      password: Yup.string().min(6).required("Password is required"),
+      username: Yup.string().required('Required'),
+      email: Yup.string().email('Invalid email').required('Required'),
+      password: isEditMode 
+        ? Yup.string() 
+        : Yup.string().required('Required'),
+      confirm_password: isEditMode 
+        ? Yup.string() 
+        : Yup.string()
+            .oneOf([Yup.ref('password')], 'Passwords must match')
+            .required('Please confirm your password'),
+      role: Yup.string().required('Required'),
     }),
-    onSubmit: (values) => {
-      console.log("Creating User:", values);
-      setModal(false);
-    },
+    onSubmit: async (values) => {
+      try {
+        setGlobalError(null);
+        if (isEditMode && currentUserId) {
+          const patchedData: UpdateUserRequest = {};
+          let hasChanges = false;
+
+          (Object.keys(values) as Array<keyof UserPayload>).forEach(key => {
+            if (values[key] !== formik.initialValues[key]) {
+              (patchedData as any)[key] = values[key];
+              hasChanges = true;
+            }
+          });
+
+          if (!hasChanges) return setModalOpen(false);
+          await updateUser({ id: currentUserId, data: patchedData });
+        } else {
+          await createUser(values);
+        }
+        setModalOpen(false);
+      } catch (error: any) {
+        handleBackendErrors(error, formik.setErrors, setGlobalError);
+      }
+    }
   });
+
+  const handleEdit = (user: User) => {
+    setIsEditMode(true);
+    setCurrentUserId(user.id);
+    formik.resetForm({ values: { 
+      username: user.username, email: user.email, role: user.role, password: '' 
+    }});
+    setModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!currentUserId) return;
+    try {
+      await deleteUser(currentUserId);
+      setDeleteModal(false);
+      setCurrentUserId(null);
+    } catch (error: any) {
+      handleBackendErrors(error, () => {}, setGlobalError);
+    }
+  };
 
   return (
     <React.Fragment>
-      <Row>
-        <Col lg={12}>
-          <Card>
-            <CardHeader className="d-flex align-items-center border-0">
-              <h5 className="card-title mb-0 flex-grow-1">System Users</h5>
-              <div className="flex-shrink-0">
-                <div className="d-flex gap-2">
-                    <div className="search-box">
-                        <Input type="text" className="form-control search" placeholder="Search users..." />
-                        <i className="ri-search-line search-icon"></i>
-                    </div>
-                    <Button color="primary" onClick={() => setModal(true)}>
-                        <i className="ri-add-line align-bottom me-1"></i> Add User
+      {globalError && <Alert color="danger">{globalError}</Alert>}
+      
+      <div className="d-flex justify-content-between mb-3">
+        <h5>System Users</h5>
+        <Button color="primary" onClick={() => { setIsEditMode(false); formik.resetForm(); setModalOpen(true); }}>
+          Add User
+        </Button>
+      </div>
+
+      <Table hover responsive>
+        <thead className="table-light">
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {isLoading ? <tr><td colSpan={5} className="text-center"><Spinner /></td></tr> :
+            data?.users.map(user => (
+              <tr key={user.id}>
+                <td>{user.username}</td>
+                <td>{user.email}</td>
+                <td>{user.role}</td>
+                <td>{user.is_active ? 'Active' : 'Inactive'}</td>
+                <td>
+                  <Button size="sm" color="soft-info" className="me-2" onClick={() => handleEdit(user)}>Edit</Button>
+                  <Button size="sm" color="soft-danger" onClick={() => { setCurrentUserId(user.id); setDeleteModal(true); }}>Delete</Button>
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </Table>
+
+      <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)} centered>
+        <ModalHeader>{isEditMode ? 'Update User' : 'Create User'}</ModalHeader>
+        <Form onSubmit={formik.handleSubmit}>
+          <ModalBody>
+            <FormGroup>
+              <Label>Username</Label>
+              <Input {...formik.getFieldProps('username')} invalid={!!formik.errors.username} />
+              <FormFeedback>{formik.errors.username}</FormFeedback>
+            </FormGroup>
+            <FormGroup>
+              <Label>Email</Label>
+              <Input {...formik.getFieldProps('email')} invalid={!!formik.errors.email} />
+              <FormFeedback>{formik.errors.email}</FormFeedback>
+            </FormGroup>
+            {!isEditMode && (
+              <>
+                <FormGroup>
+                  <Label>Password</Label>
+                  <InputGroup>
+                    <Input 
+                      type={showPassword ? "text" : "password"} 
+                      {...formik.getFieldProps('password')} 
+                      invalid={!!(formik.touched.password && formik.errors.password)} 
+                    />
+                    <Button 
+                      color="light" 
+                      type="button" 
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      <i className={showPassword ? "ri-eye-off-fill" : "ri-eye-fill"}></i>
                     </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardBody className="pt-0">
-              <div className="table-responsive table-card">
-                <Table className="align-middle table-nowrap mb-0">
-                  <thead className="table-light">
-                    <tr>
-                      <th scope="col" style={{ width: "50px" }}>
-                        <div className="form-check">
-                          <input className="form-check-input" type="checkbox" />
-                        </div>
-                      </th>
-                      <th>User</th>
-                      <th>Role</th>
-                      <th>Status</th>
-                      <th>Last Login</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {mockUsers.map((user) => (
-                      <tr key={user.id}>
-                        <th scope="row">
-                          <div className="form-check">
-                            <input className="form-check-input" type="checkbox" />
-                          </div>
-                        </th>
-                        <td>
-                            <div className="d-flex align-items-center">
-                                <div className="flex-shrink-0 me-2">
-                                    <div className="avatar-xs">
-                                        <span className="avatar-title rounded-circle bg-primary-subtle text-primary">
-                                            {user.username.charAt(0).toUpperCase()}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h5 className="fs-14 m-0">{user.username}</h5>
-                                    <p className="text-muted mb-0 fs-12">{user.email}</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                          {user.role === "ADMIN" && <Badge color="danger-subtle" className="text-danger">Admin</Badge>}
-                          {user.role === "HR_MANAGER" && <Badge color="warning-subtle" className="text-warning">HR Manager</Badge>}
-                          {user.role === "EMPLOYEE" && <Badge color="info-subtle" className="text-info">Employee</Badge>}
-                        </td>
-                        <td>
-                            {user.status ? (
-                                <Badge color="success-subtle" className="text-success">Active</Badge>
-                            ) : (
-                                <Badge color="light" className="text-muted">Inactive</Badge>
-                            )}
-                        </td>
-                        <td className="text-muted">{user.last_login}</td>
-                        <td>
-                          <UncontrolledDropdown>
-                            <DropdownToggle tag="button" className="btn btn-soft-secondary btn-sm dropdown" type="button">
-                              <i className="ri-more-fill align-middle"></i>
-                            </DropdownToggle>
-                            <DropdownMenu className="dropdown-menu-end">
-                              <DropdownItem><i className="ri-eye-fill align-bottom me-2 text-muted"></i> View</DropdownItem>
-                              <DropdownItem><i className="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</DropdownItem>
-                              <DropdownItem divider />
-                              <DropdownItem className="text-danger"><i className="ri-lock-unlock-line align-bottom me-2"></i> Reset Password</DropdownItem>
-                            </DropdownMenu>
-                          </UncontrolledDropdown>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
-              
-              {/* Pagination (Static Example) */}
-              <div className="align-items-center mt-4 pt-2 justify-content-between d-flex">
-                  <div className="flex-shrink-0">
-                      <div className="text-muted">Showing <span className="fw-semibold">3</span> of <span className="fw-semibold">3</span> Results</div>
-                  </div>
-                  <ul className="pagination pagination-separated pagination-sm mb-0">
-                      <li className="page-item disabled"><a href="#" className="page-link">←</a></li>
-                      <li className="page-item active"><a href="#" className="page-link">1</a></li>
-                      <li className="page-item"><a href="#" className="page-link">→</a></li>
-                  </ul>
-              </div>
+                    <FormFeedback>{formik.errors.password}</FormFeedback>
+                  </InputGroup>
+                </FormGroup>
+                
+                <FormGroup>
+                  <Label>Confirm Password</Label>
+                  <InputGroup>
+                    <Input 
+                      type={showConfirmPassword ? "text" : "password"} 
+                      {...formik.getFieldProps('confirm_password')} 
+                      invalid={!!(formik.touched.confirm_password && formik.errors.confirm_password)} 
+                    />
+                    <Button 
+                      color="light" 
+                      type="button" 
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      <i className={showConfirmPassword ? "ri-eye-off-fill" : "ri-eye-fill"}></i>
+                    </Button>
+                    <FormFeedback>{formik.errors.confirm_password}</FormFeedback>
+                  </InputGroup>
+                </FormGroup>
+              </>
+            )}
+            <FormGroup>
+              <Label>Role</Label>
+              <Input type="select" {...formik.getFieldProps('role')}>
+                <option value="EMPLOYEE">Employee</option>
+                <option value="MANAGER">Manager</option>
+                <option value="ADMIN">Admin</option>
+                <option value="ACCOUNT">ACCOUNT</option>
+                <option value="HR">HR</option>
+              </Input>
+            </FormGroup>
+          </ModalBody>
+          <ModalFooter>
+            <Button type="submit" color="primary" disabled={isCreating || isUpdating}>
+              {isCreating || isUpdating ? <Spinner size="sm" /> : 'Save'}
+            </Button>
+          </ModalFooter>
+        </Form>
+      </Modal>
 
-            </CardBody>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* ADD USER MODAL */}
-      <Modal isOpen={modal} toggle={() => setModal(!modal)} centered>
-        <ModalHeader toggle={() => setModal(!modal)}>Add System User</ModalHeader>
-        <ModalBody>
-            <form onSubmit={validation.handleSubmit}>
-                <div className="mb-3">
-                    <Label className="form-label">Username</Label>
-                    <Input name="username" placeholder="Enter username" onChange={validation.handleChange} value={validation.values.username} />
-                </div>
-                <div className="mb-3">
-                    <Label className="form-label">Email Address</Label>
-                    <Input name="email" type="email" placeholder="Enter email" onChange={validation.handleChange} value={validation.values.email} />
-                </div>
-                <div className="mb-3">
-                    <Label className="form-label">Role</Label>
-                    <Input type="select" name="role" onChange={validation.handleChange} value={validation.values.role}>
-                        <option value="EMPLOYEE">Employee (Self Service)</option>
-                        <option value="HR_MANAGER">HR Manager</option>
-                        <option value="ADMIN">System Administrator</option>
-                    </Input>
-                </div>
-                <div className="mb-3">
-                    <Label className="form-label">Temporary Password</Label>
-                    <Input name="password" type="password" placeholder="Default password" onChange={validation.handleChange} value={validation.values.password} />
-                </div>
-                <div className="text-end">
-                    <Button color="light" className="me-2" onClick={() => setModal(false)}>Close</Button>
-                    <Button color="primary" type="submit">Create User</Button>
-                </div>
-            </form>
+      <Modal isOpen={deleteModal} toggle={() => setDeleteModal(false)} centered>
+        <ModalBody className="p-5 text-center">
+          <i className="ri-delete-bin-line display-4 text-danger"></i>
+          <h4 className="mt-4">Delete User?</h4>
+          <p className="text-muted">This action is logged in the audit trail.</p>
+          <div className="hstack gap-2 justify-content-center">
+            <Button color="light" onClick={() => setDeleteModal(false)}>Cancel</Button>
+            <Button color="danger" onClick={confirmDelete} disabled={isDeleting}>Confirm Delete</Button>
+          </div>
         </ModalBody>
       </Modal>
     </React.Fragment>

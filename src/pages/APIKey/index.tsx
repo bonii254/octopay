@@ -51,27 +51,6 @@ const APIKey = () => {
     dispatch(getAPIKey());
   }, [dispatch]);
 
-  // const handleApiClick = useCallback((arg: any) => {
-  //   const application = arg;
-
-  //   setApiKeys((prevApiKeys) => [
-  //     ...prevApiKeys,
-  //     {
-  //       _id: application.id,
-  //       company: application.company,
-  //       Designation: application.Designation,
-  //       date: application.date,
-  //       contact: application.contact,
-  //       type: application.type,
-  //       status: application.status,
-  //     },
-  //   ]);
-  // }, []);
-
-  // const handleApiClicks = () => {
-  //   setApiKeys([]);
-  // };
-
   const checkedAll = () => {
     const checkAll: any = document.getElementById("checkBoxAll");
     const elements = document.querySelectorAll(".orderCheckBox");

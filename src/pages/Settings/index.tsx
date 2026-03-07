@@ -17,13 +17,14 @@ import {
 import classnames from "classnames";
 import { Link } from "react-router-dom";
 
-import CompanyProfile from "./components/company/CompanyProfile";
+import CompanySettings from "./components/company/CompanyProfile";
 import CompanyStructureSettings from "./components/department/CompanyStructureSettings";
 import StatutoryConfig from "./components/StatutoryConfig";
 import PayrollMaster from "./components/PayrollMaster";
 import LeaveLoanRules from "./components/LeaveLoanRules";
 import TaxBandSettings from "./components/TaxBandConfig"
 import LoanTypeSettings from "./components/department/loanTypes"
+import UserManagement from "./components/UserManagment"
 
 const SettingsHub = () => {
   const [activeTab, setActiveTab] = useState("1");
@@ -294,20 +295,13 @@ const SettingsHub = () => {
               <CardBody>
                 <TabContent activeTab={activeTab}>
                   <TabPane tabId="1">
-                    <CompanyProfile />
+                    <CompanySettings />
                   </TabPane>
                   <TabPane tabId="2">
                     <CompanyStructureSettings />
                   </TabPane>
                   <TabPane tabId="3">
-                    <div className="text-center p-5">
-                      <i className="ri-shield-user-line display-5 text-muted mb-3"></i>
-                      <h5>User Roles Component</h5>
-                      <p className="text-muted">
-                        Manage system administrators and user access levels
-                        here.
-                      </p>
-                    </div>
+                    <UserManagement/>
                   </TabPane>
                   <TabPane tabId="4">
                     <StatutoryConfig />
