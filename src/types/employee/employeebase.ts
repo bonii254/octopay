@@ -1,12 +1,10 @@
 export enum EmployeeStatus {
-  ACTIVE = "ACTIVE",
-  INACTIVE = "INACTIVE",
-  TERMINATED = "TERMINATED",
-  SUSPENDED = "SUSPENDED"
+    ACTIVE = "ACTIVE",
+    INACTIVE = "INACTIVE",
+    TERMINATED = "TERMINATED"
 }
 
-
-export interface Employee {
+export interface EmployeeBase {
   id: number;
   company_id: number;
   user_id?: number | null;
@@ -41,7 +39,7 @@ export interface Employee {
   has_bank_details?: boolean;
 }
 
-export interface EmployeePayload {
+export interface CreateEmployeePayload {
   company_id: number;
   user_id?: number | null;
   department_id?: number | null;
@@ -62,3 +60,5 @@ export interface EmployeePayload {
   marital_status?: string | null;
   disability_status: boolean;
 }
+
+export type UpdateEmployeePayload = Partial<CreateEmployeePayload>;
