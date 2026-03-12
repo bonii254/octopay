@@ -11,7 +11,7 @@ export const employeeContactKeys = {
     detail: (id: number) => [...employeeContactKeys.all, "detail", id] as const,
 };
 
-export const useEmployeeContactMutation = () => {
+export const useContactMutation = () => {
     const queryClient = useQueryClient();
 
     const createMutation = useMutation({

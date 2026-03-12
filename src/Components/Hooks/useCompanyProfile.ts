@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { APIClient } from "../../helpers/api_helper";
+import { Company } from "../../types/company"
 
 const api = new APIClient();
 
 export const useGetCompany = () => {
-  return useQuery({
+  return useQuery<Company | null>({
     queryKey: ["company"],
     queryFn: async () => {
       try {

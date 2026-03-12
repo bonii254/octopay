@@ -1,6 +1,9 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 
+//user registration
+import OnboardingWizard from "../pages/employees/OnboardingWizard";
+
 //Dashboard
 import DashboardAnalytics from "../pages/DashboardAnalytics";
 import DashboardCrm from "../pages/DashboardCrm";
@@ -199,6 +202,7 @@ const authProtectedRoutes = [
   { path: "/apps-file-manager", component: <FileManager /> },
 
   //settings
+  { path: "/employee", component: <OnboardingWizard />},
   { path: "/settings", component: <SettingsHub /> },
   { path: "/settings/company-profile", component: <CompanyProfile /> },
   { path: "/settings/org-structure", component: <OrgStructure /> },

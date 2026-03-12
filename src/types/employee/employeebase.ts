@@ -14,6 +14,7 @@ export interface EmployeeBase {
 
   employee_code: string;
   first_name: string;
+  middle_name: string;
   last_name?: string | null;
   national_id?: string | null;
 
@@ -40,14 +41,13 @@ export interface EmployeeBase {
 }
 
 export interface CreateEmployeePayload {
-  company_id: number;
   user_id?: number | null;
   department_id?: number | null;
   designation_id?: number | null;
   shift_id?: number | null;
 
-  employee_code: string;
   first_name: string;
+  middle_name: string;
   last_name?: string | null;
   national_id?: string | null;
 

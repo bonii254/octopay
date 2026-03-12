@@ -155,6 +155,13 @@ const Navdata = () => {
             },
             subItems: [
                 {
+                    id: "employee",
+                    label: "Employee",
+                    link: "/employee",
+                    parentId: "dashboard",
+                    badgeColor: "danger",
+                },
+                {
                     id: "analytics",
                     label: "Analytics",
                     link: "/dashboard-analytics",
