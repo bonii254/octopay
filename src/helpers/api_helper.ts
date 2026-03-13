@@ -28,8 +28,8 @@ axios.interceptors.response.use(
   async (error: any) => {
     const originalRequest = error.config;
 
+    // --- 1. HANDLE AUTH REFRESH LOGIC ---
     if (error.response?.status === 401 && !originalRequest._retry) {
-
       if (originalRequest.url.includes("/login")) {
         return Promise.reject("Invalid credentials. Please try again.");
       }
@@ -44,12 +44,8 @@ axios.interceptors.response.use(
         return new Promise(function (resolve, reject) {
           failedQueue.push({ resolve, reject });
         })
-          .then(() => {
-            return axios(originalRequest);
-          })
-          .catch((err) => {
-            return Promise.reject(err);
-          });
+          .then(() => axios(originalRequest))
+          .catch((err) => Promise.reject(err));
       }
 
       originalRequest._retry = true;
@@ -57,10 +53,8 @@ axios.interceptors.response.use(
 
       try {
         await axios.post("/refresh");
-
         processQueue(null);
         return axios(originalRequest);
-        
       } catch (refreshError) {
         processQueue(refreshError, null);
         sessionStorage.removeItem("authUser");
@@ -71,16 +65,23 @@ axios.interceptors.response.use(
       }
     }
 
+    const responseData = error.response?.data;
+
+    if (error.response?.status === 404) {
+        return Promise.reject({
+            status: 404,
+            message: responseData?.message || responseData?.error || "Record not found",
+            errors: responseData?.errors || null
+        });
+    }
+
+    if (responseData?.errors) {
+      return Promise.reject(responseData.errors);
+    }
 
     let message = "Something went wrong";
     if (error.response) {
-       const data = error.response.data;
-       if (data?.errors) {
-         return Promise.reject(data.errors);
-       }
-       if (data?.error) message = data.error;
-       else if (data?.message) message = data.message;
-       else if (data && data.errors) message = JSON.stringify(data.errors);
+       message = responseData?.error || responseData?.message || `Server Error: ${error.response.status}`;
     } else if (error.request) {
        message = "Network Error: Could not reach the server";
     }

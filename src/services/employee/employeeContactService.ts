@@ -14,6 +14,11 @@ export const EmployeeContactService = {
         return response.employee_contacts;
     },
 
+    getById: async (id: number): Promise<EmployeeContact> => {
+      const response = await api.get(`${BASE_URL}/${id}`);
+      return response.employee_contact;
+    },
+
     createContact: async (payload: CreateEmployeeContactPayload): Promise<EmployeeContact> => {
         const response = await api.create(`${BASE_URL}/register`, payload);
         return response.employeeContact;

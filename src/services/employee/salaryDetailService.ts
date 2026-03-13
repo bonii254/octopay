@@ -6,9 +6,19 @@ import {
 } from "../../types/employee/salaryDetail";
 
 const api = new APIClient();
-const BASE_URL = "/salary";
+const BASE_URL = "/salarydetails";
 
 export const SalaryDetailService = {
+    getAllSalaryDetails: async (): Promise<SalaryDetail[]> => {
+      const response = await api.get(`${BASE_URL}`); 
+      return response.salary_details;
+    },
+    
+    getSalaryDetailsById: async (id: number): Promise<SalaryDetail> => {
+      const response = await api.get(`${BASE_URL}/${id}`);
+      return response.salary_detail;
+    },
+
     createSalaryDetail: async (payload: CreateSalaryDetailPayload): Promise<SalaryDetail> => {
         const response = await api.create(`${BASE_URL}/register`, payload);
         return response.salary_detail;

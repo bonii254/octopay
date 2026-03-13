@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { 
@@ -8,29 +8,55 @@ import {
     Input, 
     FormFeedback, 
     Form, 
-    Button 
+    Button,
+    Alert,
+    Spinner 
 } from "reactstrap";
 import { useBankDetailMutation } from "../../Components/Hooks/employee/useBankDetailMutation";
+import { useBankDetail } from "../../Components/Hooks/employee/useBankDetailMutation"; 
 import { CreateBankDetailPayload } from "../../types/employee/bankDetail";
 import { toast } from "react-toastify";
+import { handleBackendErrors } from "../../helpers/form_utils";
 
 interface Step5Props {
   employeeId: number | null;
-  onNext: () => void;
+  onNext: (id?: number, name?: string, rawData?: any) => void;
   onBack: () => void;
+  existingData?: any;
 }
 
-const Step5Bank = ({ employeeId, onNext, onBack }: Step5Props) => {
-  const { CreateBankDetail, isCreating } = useBankDetailMutation();
+const Step5Bank = ({ employeeId, onNext, onBack, existingData }: Step5Props) => {
+  const { CreateBankDetail, UpdateBankDetail, isCreating, isUpdating } = useBankDetailMutation();
+  const [globalError, setGlobalError] = useState<string | null>(null);
+
+  const { 
+    data: dbBank, 
+    isLoading: isFetching, 
+    error: fetchError 
+  } = useBankDetail(employeeId as number, {
+      retry: false, 
+  });
+
+  const isNotFoundError = (fetchError as any)?.status === 404;
+  const activeBank = !isNotFoundError ? (dbBank || existingData?.bank_details) : null;
+  const hasBankDetails = !!activeBank;
+
+  useEffect(() => {
+    if (fetchError && !isNotFoundError) {
+      const msg = (fetchError as any).message || "Failed to load bank information.";
+      setGlobalError(msg);
+    }
+  }, [fetchError, isNotFoundError]);
 
   const formik = useFormik<CreateBankDetailPayload>({
+    enableReinitialize: true, 
     initialValues: {
       employee_id: employeeId || 0,
-      bank_name: "",
-      bank_code: "",
-      branch_code: "",
-      swift_code: "",
-      account_number: "",
+      bank_name: activeBank?.bank_name || "",
+      bank_code: activeBank?.bank_code || "",
+      branch_code: activeBank?.branch_code || "",
+      swift_code: activeBank?.swift_code || "",
+      account_number: activeBank?.account_number || "",
     },
     validationSchema: Yup.object({
       bank_name: Yup.string().required("Bank name is required"),
@@ -46,19 +72,53 @@ const Step5Bank = ({ employeeId, onNext, onBack }: Step5Props) => {
       }
 
       try {
-        await CreateBankDetail({
-          ...values,
-          employee_id: employeeId,
-        });
-        toast.success("Onboarding process completed successfully!");
-        onNext();
-      } catch (error) {
+        setGlobalError(null);
+        let response;
+
+        if (hasBankDetails) {
+          response = await UpdateBankDetail({
+            id: activeBank.id,
+            data: { ...values, employee_id: employeeId }
+          });
+          toast.info("Bank details updated successfully.");
+        } else {
+          response = await CreateBankDetail({
+            ...values,
+            employee_id: employeeId,
+          });
+          toast.success("Bank details saved successfully.");
+        }
+
+        onNext(employeeId, undefined, response);
+      } catch (error: any) {
+        handleBackendErrors(error, formik.setErrors, setGlobalError);
       }
     },
   });
 
+  if (isFetching && !activeBank && !isNotFoundError) {
+    return (
+      <div className="text-center py-5">
+        <Spinner color="primary" />
+        <p className="mt-2 text-muted">Retrieving bank details...</p>
+      </div>
+    );
+  }
+
   return (
     <Form onSubmit={formik.handleSubmit}>
+      {globalError && (
+        <Alert color="danger" className="mb-4 shadow-sm border-0 border-start border-4 border-danger">
+          <div className="d-flex align-items-center">
+            <i className="ri-error-warning-fill fs-24 me-2"></i>
+            <div>
+              <p className="mb-0 fw-bold">Server Connection Issue</p>
+              <p className="mb-0 fs-12">{globalError}</p>
+            </div>
+          </div>
+        </Alert>
+      )}
+
       <Row>
         <Col md={12}>
           <div className="mb-3">
@@ -134,12 +194,14 @@ const Step5Bank = ({ employeeId, onNext, onBack }: Step5Props) => {
 
         <Button
           type="submit"
-          color="success"
+          color={hasBankDetails ? "info" : "success"}
           className="btn-label right"
-          disabled={isCreating}
+          disabled={isCreating || isUpdating}
         >
-          <i className="ri-check-double-line label-icon align-middle fs-16 ms-2"></i>
-          {isCreating ? "Finalizing..." : "Complete Onboarding"}
+          <i className={`${hasBankDetails ? 'ri-save-line' : 'ri-check-double-line'} label-icon align-middle fs-16 ms-2`}></i>
+          {isCreating || isUpdating ? (
+            <><Spinner size="sm" className="me-2" /> Saving...</>
+          ) : hasBankDetails ? "Update & Continue" : "Save & Continue"}
         </Button>
       </div>
     </Form>

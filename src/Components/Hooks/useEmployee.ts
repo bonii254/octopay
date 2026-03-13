@@ -5,7 +5,11 @@ import {
     UseQueryOptions 
 } from "@tanstack/react-query";
 import { employeeService } from "../../services/employeeService";
-import { Employee, EmployeePayload } from "../../types/employee";   
+import { 
+    EmployeeBase,
+    CreateEmployeePayload,
+    UpdateEmployeePayload
+ } from "../../types/employee/employeebase";   
 
 
 export const employeeKeys = {
@@ -19,9 +23,9 @@ export const employeeKeys = {
 
 export const useEmployees = (
     params?: Record<string, unknown>,
-    options?: Omit<UseQueryOptions<Employee[]>, "queryKey" | "queryFn">
+    options?: Omit<UseQueryOptions<EmployeeBase[]>, "queryKey" | "queryFn">
 ) => {
-    return useQuery<Employee[]>({
+    return useQuery<EmployeeBase[]>({
         queryKey: employeeKeys.list(params),
         queryFn: () => employeeService.getAll(),
         ...options,
@@ -31,11 +35,11 @@ export const useEmployees = (
 export const useEmployee = (
     id: number,
     options?: Omit<
-      UseQueryOptions<Employee>, 
+      UseQueryOptions<EmployeeBase>, 
       "queryKey" | "queryFn"
     >
 ) => {
-    return useQuery<Employee>({
+    return useQuery<EmployeeBase>({
         queryKey: employeeKeys.detail(id),
         queryFn: () => employeeService.getById(id),
         enabled: Boolean(id),
@@ -47,7 +51,7 @@ export const useEmployeeMutation = () => {
     const queryClient = useQueryClient(); 
 
     const createMutation = useMutation({
-        mutationFn: (data: EmployeePayload) => 
+        mutationFn: (data: CreateEmployeePayload) => 
             employeeService.create(data),   
 
         onSuccess: () => {
@@ -61,7 +65,7 @@ const updateMutation = useMutation({
             id, 
             data 
         }: { id: number; 
-            data: Partial<EmployeePayload> 
+            data: Partial<UpdateEmployeePayload> 
         }) => employeeService.update(id, data),
 
         onSuccess: (updatedEmployee) => {

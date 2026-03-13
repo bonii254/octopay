@@ -1,51 +1,45 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { 
-    Row, 
-    Col, 
-    Label, 
-    Input, 
-    FormFeedback, 
-    Form, 
-    Button, 
-    Spinner,
-    Alert 
-} from "reactstrap";
+import { Row, Col, Label, Input, FormFeedback, Form, Button, Spinner, Alert } from "reactstrap";
+import { toast } from "react-toastify";
+
 import { useEmployeeBaseMutation } from "../../Components/Hooks/employee/useEmployeebase";
 import { useGetCompany } from "../../Components/Hooks/useCompanyProfile";
 import { EmployeeStatus, CreateEmployeePayload } from "../../types/employee/employeebase";
-import { toast } from "react-toastify";
+import { handleBackendErrors } from "../../helpers/form_utils"; 
 
 interface Step1Props {
-  onNext: (id: number, name: string) => void;
+  onNext: (id: number, name: string, data: any) => void;
+  existingData?: any;
 }
 
-const Step1Primary = ({ onNext }: Step1Props) => {
-  const { CreateEmployeeBase, isCreating } = useEmployeeBaseMutation();
+const Step1Primary = ({ onNext, existingData }: Step1Props) => {
+  const { CreateEmployeeBase, UpdateEmployeeBase, isCreating, isUpdating } = useEmployeeBaseMutation();
   const { data: company, isLoading: isLoadingCompany, isError } = useGetCompany();
+  const [globalError, setGlobalError] = useState<string | null>(null);
 
-  const formik = useFormik<CreateEmployeePayload>({
+  const formik = useFormik<CreateEmployeePayload & { company_id?: number }>({
+    enableReinitialize: true, 
     initialValues: {
-      first_name: "",
-      middle_name: "",
-      last_name: "",
-      national_id: "",
-      gender: "MALE",
-      marital_status: "SINGLE",
-      date_of_birth: "",
-      hire_date: new Date().toISOString().split("T")[0],
-      status: EmployeeStatus.ACTIVE,
-      disability_status: false,
-      user_id: null,
-      department_id: null,
-      designation_id: null,
-      shift_id: null,
-      termination_date: null,
+      first_name: existingData?.first_name || "",
+      middle_name: existingData?.middle_name || "",
+      last_name: existingData?.last_name || "",
+      national_id: existingData?.national_id || "",
+      gender: existingData?.gender || "MALE",
+      marital_status: existingData?.marital_status || "SINGLE",
+      date_of_birth: existingData?.date_of_birth || "",
+      hire_date: existingData?.hire_date || new Date().toISOString().split("T")[0],
+      status: existingData?.status || EmployeeStatus.ACTIVE,
+      disability_status: existingData?.disability_status || false,
+      user_id: existingData?.user_id || null,
+      department_id: existingData?.department_id || null,
+      designation_id: existingData?.designation_id || null,
+      shift_id: existingData?.shift_id || null,
     },
     validationSchema: Yup.object({
       first_name: Yup.string().required("First name is required"),
-      middle_name: Yup.string().required("First name is required"),
+      middle_name: Yup.string().required("Middle name is required"),
       last_name: Yup.string().required("Last name is required"),
       national_id: Yup.string().required("National ID/Passport is required"),
       date_of_birth: Yup.date()
@@ -55,18 +49,30 @@ const Step1Primary = ({ onNext }: Step1Props) => {
     }),
     onSubmit: async (values) => {
       try {
-        const response = await CreateEmployeeBase(values);
-        toast.success(`Success! ${response.employee_code} registered.`);
-        onNext(response.id, response.full_name || `${values.first_name} ${values.last_name}`);
-      } catch (error) {
+        setGlobalError(null);
+        const { company_id, ...payload } = values;
+        
+        let response;
+        if (existingData?.id) {
+          response = await UpdateEmployeeBase({ 
+            id: existingData.id, 
+            data: payload 
+          });
+          toast.info("Employee details updated.");
+        } else {
+          response = await CreateEmployeeBase(payload);
+          toast.success(`Success! ${response.employee_code} registered.`);
+        }
+
+        onNext(response.id, response.full_name || `${values.first_name} ${values.last_name}`, response);
+      } catch (error: any) {
+        handleBackendErrors(error, formik.setErrors, setGlobalError);
       }
     },
   });
 
   useEffect(() => {
-    if (company?.id) {
-      formik.setFieldValue("company_id", company.id);
-    }
+    if (company?.id) formik.setFieldValue("company_id", company.id);
   }, [company]);
 
   if (isLoadingCompany) {
@@ -78,25 +84,19 @@ const Step1Primary = ({ onNext }: Step1Props) => {
     );
   }
 
-  if (isError || !company) {
-    return (
-      <Alert color="danger" className="m-3">
-        <i className="ri-error-warning-line me-2"></i>
-        Critical Error: No active Company record found. Please set up your Company Profile before onboarding employees.
-      </Alert>
-    );
-  }
-
   return (
     <Form onSubmit={formik.handleSubmit}>
+      {globalError && (
+        <Alert color="danger" className="mb-4">
+          <i className="ri-error-warning-fill me-2"></i> {globalError}
+        </Alert>
+      )}
+        
       <div className="mb-4 d-flex align-items-center justify-content-between p-3 bg-light-subtle rounded border border-dashed">
         <div>
-            <h6 className="mb-1 text-primary">Onboarding for: {company.name}</h6>
-            <p className="text-muted mb-0 fs-12">Organization ID: {company.id} | Default Prefix active</p>
+          <h6 className="mb-1 text-primary">Onboarding for: {company?.name}</h6>
+          <p className="text-muted mb-0 fs-12">Organization ID: {company?.id} | Status: Ready</p>
         </div>
-        <span className="badge bg-success-subtle text-success border border-success-subtle">
-            <i className="ri-check-double-line me-1"></i> System Ready
-        </span>
       </div>
 
       <Row>
@@ -106,7 +106,6 @@ const Step1Primary = ({ onNext }: Step1Props) => {
             <Input
               type="text"
               className="form-control-lg"
-              placeholder="Enter first name"
               {...formik.getFieldProps("first_name")}
               invalid={formik.touched.first_name && !!formik.errors.first_name}
             />
@@ -119,7 +118,6 @@ const Step1Primary = ({ onNext }: Step1Props) => {
             <Input
               type="text"
               className="form-control-lg"
-              placeholder="Enter first name"
               {...formik.getFieldProps("middle_name")}
               invalid={formik.touched.middle_name && !!formik.errors.middle_name}
             />
@@ -132,7 +130,6 @@ const Step1Primary = ({ onNext }: Step1Props) => {
             <Input
               type="text"
               className="form-control-lg"
-              placeholder="Enter last name"
               {...formik.getFieldProps("last_name")}
               invalid={formik.touched.last_name && !!formik.errors.last_name}
             />
@@ -147,7 +144,6 @@ const Step1Primary = ({ onNext }: Step1Props) => {
             <Label className="form-label">National ID / Passport</Label>
             <Input
               type="text"
-              placeholder="ID Number"
               {...formik.getFieldProps("national_id")}
               invalid={formik.touched.national_id && !!formik.errors.national_id}
             />
@@ -157,27 +153,19 @@ const Step1Primary = ({ onNext }: Step1Props) => {
         <Col md={4}>
           <div className="mb-3">
             <Label className="form-label">Gender</Label>
-            <select
-              className="form-select"
-              {...formik.getFieldProps("gender")}
-            >
+            <select className="form-select" {...formik.getFieldProps("gender")}>
               <option value="MALE">Male</option>
               <option value="FEMALE">Female</option>
-              <option value="OTHER">Other</option>
             </select>
           </div>
         </Col>
         <Col md={4}>
           <div className="mb-3">
             <Label className="form-label">Marital Status</Label>
-            <select
-              className="form-select"
-              {...formik.getFieldProps("marital_status")}
-            >
+            <select className="form-select" {...formik.getFieldProps("marital_status")}>
               <option value="SINGLE">Single</option>
               <option value="MARRIED">Married</option>
               <option value="DIVORCED">Divorced</option>
-              <option value="WIDOWED">Widowed</option>
             </select>
           </div>
         </Col>
@@ -198,25 +186,18 @@ const Step1Primary = ({ onNext }: Step1Props) => {
         <Col md={4}>
           <div className="mb-3">
             <Label className="form-label">Hire Date</Label>
-            <Input
-              type="date"
-              {...formik.getFieldProps("hire_date")}
-            />
+            <Input type="date" {...formik.getFieldProps("hire_date")} />
           </div>
         </Col>
         <Col md={4} className="d-flex align-items-center">
           <div className="form-check form-switch form-switch-lg mt-3">
             <Input
               type="switch"
-              className="form-check-input"
               id="disability_status"
-              name="disability_status"
               checked={formik.values.disability_status}
               onChange={formik.handleChange}
             />
-            <Label className="form-check-label" htmlFor="disability_status">
-              Disability Status
-            </Label>
+            <Label className="form-check-label ms-2" htmlFor="disability_status">Disability Status</Label>
           </div>
         </Col>
       </Row>
@@ -224,12 +205,12 @@ const Step1Primary = ({ onNext }: Step1Props) => {
       <div className="d-flex align-items-start gap-3 mt-4">
         <Button
           type="submit"
-          color="success"
+          color={existingData?.id ? "info" : "success"}
           className="btn-label right ms-auto"
-          disabled={isCreating || !company?.id}
+          disabled={isCreating || isUpdating}
         >
-          <i className="ri-user-add-line label-icon align-middle fs-16 ms-2"></i>
-          {isCreating ? "Processing..." : "Create Employee Record"}
+          <i className={`${existingData?.id ? 'ri-save-line' : 'ri-user-add-line'} label-icon align-middle fs-16 ms-2`}></i>
+          {isCreating || isUpdating ? "Processing..." : existingData?.id ? "Update & Continue" : "Create Record & Continue"}
         </Button>
       </div>
     </Form>

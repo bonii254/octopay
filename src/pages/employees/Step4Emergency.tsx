@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { 
@@ -8,28 +8,57 @@ import {
     Input, 
     FormFeedback, 
     Form, 
-    Button 
+    Button,
+    Alert,
+    Spinner 
 } from "reactstrap";
-import { useEmergencyContactMutation } from "../../Components/Hooks/employee/useEmergencyContactMutation";
+// Using your provided hook
+import { 
+    useEmergencyContactMutation, 
+    useEmployeesEmergencyContact 
+} from "../../Components/Hooks/employee/useEmergencyContactMutation";
 import { CreateEmergencyContactPayload } from "../../types/employee/emergencyContact";
 import { toast } from "react-toastify";
+import { handleBackendErrors } from "../../helpers/form_utils";
 
 interface Step4Props {
   employeeId: number | null;
-  onNext: () => void;
+  onNext: (id?: number, name?: string, rawData?: any) => void;
   onBack: () => void;
+  existingData?: any; 
 }
 
-const Step4Emergency = ({ employeeId, onNext, onBack }: Step4Props) => {
-  const { CreateEmergencyContact, isCreating } = useEmergencyContactMutation();
+const Step4Emergency = ({ employeeId, onNext, onBack, existingData }: Step4Props) => {
+  const { CreateEmergencyContact, UpdateEmergencyContact, isCreating, isUpdating } = useEmergencyContactMutation();
+  const [globalError, setGlobalError] = useState<string | null>(null);
+
+  const { 
+    data: dbEmergency, 
+    isLoading: isFetching, 
+    error: fetchError 
+  } = useEmployeesEmergencyContact(employeeId as number, {
+      retry: false, 
+  });
+
+  const isNotFoundError = (fetchError as any)?.status === 404;
+  const activeContact = !isNotFoundError ? (dbEmergency || existingData?.emergency_contact) : null;
+  const hasEmergencyContact = !!activeContact;
+
+  useEffect(() => {
+    if (fetchError && !isNotFoundError) {
+      const msg = (fetchError as any).message || "Error loading emergency contact.";
+      setGlobalError(msg);
+    }
+  }, [fetchError, isNotFoundError]);
 
   const formik = useFormik<CreateEmergencyContactPayload>({
+    enableReinitialize: true, 
     initialValues: {
       employee_id: employeeId || 0,
-      name: "",
-      relationship: "",
-      phone: "",
-      alternate_phone: "",
+      name: activeContact?.name || "",
+      relationship: activeContact?.relationship || "",
+      phone: activeContact?.phone || "",
+      alternate_phone: activeContact?.alternate_phone || "",
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Full name is required"),
@@ -44,19 +73,52 @@ const Step4Emergency = ({ employeeId, onNext, onBack }: Step4Props) => {
       }
 
       try {
-        await CreateEmergencyContact({
-          ...values,
-          employee_id: employeeId,
-        });
-        toast.success("Emergency contact saved.");
-        onNext();
-      } catch (error) {
+        setGlobalError(null);
+        let response;
+
+        if (hasEmergencyContact) {
+          response = await UpdateEmergencyContact({
+            id: activeContact.id,
+            data: { ...values, employee_id: employeeId }
+          });
+          toast.info("Emergency contact updated.");
+        } else {
+          response = await CreateEmergencyContact({
+            ...values,
+            employee_id: employeeId,
+          });
+          toast.success("Emergency contact saved.");
+        }
+
+        onNext(employeeId, undefined, response);
+      } catch (error: any) {
+        handleBackendErrors(error, formik.setErrors, setGlobalError);
       }
     },
   });
+  if (isFetching && !activeContact && !isNotFoundError) {
+    return (
+      <div className="text-center py-5">
+        <Spinner color="primary" />
+        <p className="mt-2 text-muted">Retrieving emergency contact...</p>
+      </div>
+    );
+  }
 
   return (
     <Form onSubmit={formik.handleSubmit}>
+      {globalError && (
+        <Alert color="danger" className="mb-4 shadow-sm border-0 border-start border-4 border-danger">
+          <div className="d-flex align-items-center">
+            <i className="ri-error-warning-fill fs-24 me-2"></i>
+            <div>
+              <p className="mb-0 fw-bold">Fetch Error</p>
+              <p className="mb-0 fs-12">{globalError}</p>
+            </div>
+          </div>
+        </Alert>
+      )}
+
       <Row>
         <Col md={6}>
           <div className="mb-3">
@@ -113,7 +175,9 @@ const Step4Emergency = ({ employeeId, onNext, onBack }: Step4Props) => {
               type="text"
               placeholder="Second number"
               {...formik.getFieldProps("alternate_phone")}
+              invalid={formik.touched.alternate_phone && !!formik.errors.alternate_phone}
             />
+            <FormFeedback>{formik.errors.alternate_phone}</FormFeedback>
           </div>
         </Col>
       </Row>
@@ -126,12 +190,14 @@ const Step4Emergency = ({ employeeId, onNext, onBack }: Step4Props) => {
 
         <Button
           type="submit"
-          color="primary"
+          color={hasEmergencyContact ? "info" : "primary"}
           className="btn-label right"
-          disabled={isCreating}
+          disabled={isCreating || isUpdating}
         >
-          <i className="ri-save-3-line label-icon align-middle fs-16 ms-2"></i>
-          {isCreating ? "Saving..." : "Save & Continue"}
+          <i className={`${hasEmergencyContact ? 'ri-save-line' : 'ri-save-3-line'} label-icon align-middle fs-16 ms-2`}></i>
+          {isCreating || isUpdating ? (
+            <><Spinner size="sm" className="me-2" /> Saving...</>
+          ) : hasEmergencyContact ? "Update & Continue" : "Save & Continue"}
         </Button>
       </div>
     </Form>

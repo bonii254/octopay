@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { 
@@ -8,31 +8,36 @@ import {
     FormFeedback, 
     Form, 
     Button, 
-    Spinner 
+    Spinner,
+    Alert 
 } from "reactstrap";
 import { useEmployeeBaseMutation } from "../../Components/Hooks/employee/useEmployeebase";
 import { useDepartments } from "../../Components/Hooks/useDepartment";
 import { useDesignations } from "../../Components/Hooks/useDesignation";
 import { UpdateEmployeePayload } from "../../types/employee/employeebase";
 import { toast } from "react-toastify";
+import { handleBackendErrors } from "../../helpers/form_utils";
 
 interface Step2Props {
   employeeId: number | null;
-  onNext: () => void;
+  onNext: (id?: number, name?: string, rawData?: any) => void;
   onBack: () => void;
+  existingData?: any;
 }
 
-const Step2Employment = ({ employeeId, onNext, onBack }: Step2Props) => {
+const Step2Employment = ({ employeeId, onNext, onBack, existingData }: Step2Props) => {
   const { UpdateEmployeeBase, isUpdating } = useEmployeeBaseMutation();
+  const [globalError, setGlobalError] = useState<string | null>(null);
   
   const { data: departments, isLoading: loadingDepts } = useDepartments();
   const { data: designations, isLoading: loadingDesigs } = useDesignations();
 
   const formik = useFormik<UpdateEmployeePayload>({
+    enableReinitialize: true,
     initialValues: {
-      department_id: null,
-      designation_id: null,
-      shift_id: null,
+      department_id: existingData?.department_id || null,
+      designation_id: existingData?.designation_id || null,
+      shift_id: existingData?.shift_id || null,
     },
     validationSchema: Yup.object({
       department_id: Yup.number().nullable().required("Please select a department"),
@@ -45,10 +50,17 @@ const Step2Employment = ({ employeeId, onNext, onBack }: Step2Props) => {
       }
 
       try {
-        await UpdateEmployeeBase({ id: employeeId, data: values });
+        setGlobalError(null);
+        const response = await UpdateEmployeeBase({ 
+            id: employeeId, 
+            data: values 
+        });
+        
         toast.success("Employment details updated.");
-        onNext();
-      } catch (error) {
+        onNext(response.id, response.full_name, response); 
+      } catch (error: any) {
+        handleBackendErrors(error, formik.setErrors, setGlobalError);
+        toast.error("Failed to update employment details.");
       }
     },
   });
@@ -66,6 +78,12 @@ const Step2Employment = ({ employeeId, onNext, onBack }: Step2Props) => {
 
   return (
     <Form onSubmit={formik.handleSubmit}>
+      {globalError && (
+        <Alert color="danger" className="mb-4">
+          <i className="ri-error-warning-fill me-2"></i> {globalError}
+        </Alert>
+      )}
+
       <Row className="justify-content-center">
         <Col md={8}>
           <div className="mb-4">
@@ -76,7 +94,7 @@ const Step2Employment = ({ employeeId, onNext, onBack }: Step2Props) => {
                 formik.touched.department_id && formik.errors.department_id ? "is-invalid" : ""
               }`}
               value={formik.values.department_id || ""}
-              onChange={(e) => formik.setFieldValue("department_id", Number(e.target.value))}
+              onChange={(e) => formik.setFieldValue("department_id", e.target.value ? Number(e.target.value) : null)}
             >
               <option value="">Select Department</option>
               {departments?.map((dept) => (
@@ -96,7 +114,7 @@ const Step2Employment = ({ employeeId, onNext, onBack }: Step2Props) => {
                 formik.touched.designation_id && formik.errors.designation_id ? "is-invalid" : ""
               }`}
               value={formik.values.designation_id || ""}
-              onChange={(e) => formik.setFieldValue("designation_id", Number(e.target.value))}
+              onChange={(e) => formik.setFieldValue("designation_id", e.target.value ? Number(e.target.value) : null)}
             >
               <option value="">Select Designation</option>
               {designations?.map((desig) => (
@@ -108,12 +126,17 @@ const Step2Employment = ({ employeeId, onNext, onBack }: Step2Props) => {
             <FormFeedback>{formik.errors.designation_id}</FormFeedback>
           </div>
 
-          <div className="mb-4 opacity-50">
+          <div className="mb-4 opacity-50 border p-3 rounded bg-light">
             <Label className="form-label text-muted">Work Shift (Optional)</Label>
             <select name="shift_id" className="form-select" disabled>
               <option value="">Standard Day Shift (Default)</option>
             </select>
-            <small className="text-info">Shift management will be enabled in a future update.</small>
+            <div className="mt-2">
+                <small className="text-info">
+                    <i className="ri-information-line me-1"></i>
+                    Shift management will be enabled in a future update.
+                </small>
+            </div>
           </div>
         </Col>
       </Row>

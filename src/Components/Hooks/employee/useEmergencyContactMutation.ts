@@ -1,14 +1,52 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { EmergencyContactService } from "../../../services/employee/emergencyContactService";
 import { 
+    useMutation, 
+    useQueryClient,
+    useQuery, 
+    UseQueryOptions
+ } from "@tanstack/react-query";
+import { EmergencyContactService } from "../../../services/employee/emergencyContactService";
+import {
+    EmergencyContact,
     CreateEmergencyContactPayload, 
     UpdateEmergencyContactPayload 
 } from "../../../types/employee/emergencyContact";
 
 export const emergencyContactKeys = {
-    all: ["emergencyContacts"] as const,
-    detail: (id: number) => [...emergencyContactKeys.all, "detail", id] as const,
+  all: ["EmergencyContact"] as const,
+  lists: () => [...emergencyContactKeys.all, "list"] as const,
+  list: (params?: Record<string, unknown>) =>
+    [...emergencyContactKeys.lists(), params] as const,
+  details: () => [...emergencyContactKeys.all, "detail"] as const,
+  detail: (id: number) => [...emergencyContactKeys.all, "detail", id] as const,
 };
+
+
+export const useEmployeesEmergencyContacts = (
+  params?: Record<string, unknown>,
+  options?: Omit<UseQueryOptions<EmergencyContact[]>, "queryKey" | "queryFn"> 
+) => {
+  return useQuery<EmergencyContact[]>({
+    queryKey: emergencyContactKeys.list(params),
+    queryFn: () => EmergencyContactService.getAllContacts(),
+    ...options,
+  });
+};
+
+export const useEmployeesEmergencyContact = (
+    id: number,
+    options?: Omit<
+      UseQueryOptions<EmergencyContact>, 
+      "queryKey" | "queryFn"
+    >
+) => {
+    return useQuery<EmergencyContact>({
+        queryKey: emergencyContactKeys.detail(id),
+        queryFn: () => EmergencyContactService.getById(id),
+        enabled: Boolean(id),
+        ...options,
+    });
+};
+
 
 export const useEmergencyContactMutation = () => {
     const queryClient = useQueryClient();
