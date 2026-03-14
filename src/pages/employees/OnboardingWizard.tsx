@@ -1,23 +1,9 @@
 import React, { useState } from "react";
-import { 
-    Container, 
-    Row, 
-    Col, 
-    Card, 
-    CardBody, 
-    Nav, 
-    NavItem, 
-    NavLink, 
-    TabContent, 
-    TabPane, 
-    Progress, 
-    Label 
-} from "reactstrap";
+import { Container, Row, Col, Card, CardBody, Nav, NavItem, NavLink, TabContent, TabPane, Progress, Label } from "reactstrap";
 import Select from "react-select";
 import classnames from "classnames";
 import { Link } from "react-router-dom";
 
-// Hooks and Components
 import { useEmployeesBase } from "../../Components/Hooks/employee/useEmployeebase";
 import Step1Primary from "./Step1Primary";
 import Step2Employment from "./Step2Employment";
@@ -34,34 +20,49 @@ const OnboardingWizard = () => {
   const [employeeName, setEmployeeName] = useState<string>("New Employee");
   const [selectedEmployeeData, setSelectedEmployeeData] = useState<any>(null);
 
-  // Fetch employees for the search filter
-  const { data: employees, isLoading: loadingEmployees } = useEmployeesBase();
+  const { data: employees } = useEmployeesBase();
 
-  /**
-   * Handles selecting an employee from the search dropdown.
-   * Pre-fills the wizard and unlocks all steps.
-   */
+  const customSelectStyles = {
+    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+    menu: (provided: any) => ({
+      ...provided,
+      backgroundColor: "white",
+      zIndex: 9999,
+      border: "1px solid #ebedf2",
+      boxShadow: "0 5px 10px rgba(30, 32, 37, 0.12)"
+    }),
+    option: (provided: any, state: any) => ({
+      ...provided,
+      backgroundColor: state.isSelected 
+        ? "#405189" 
+        : state.isFocused 
+        ? "#f3f6f9" 
+        : "white",
+      color: state.isSelected ? "white" : "#212529",
+      cursor: "pointer"
+    }),
+  };
+
   const handleSelectEmployee = (selectedOption: any) => {
     if (selectedOption) {
       const emp = selectedOption.value;
       setEmployeeId(emp.id);
       setEmployeeName(emp.full_name || `${emp.first_name} ${emp.last_name}`);
       setSelectedEmployeeData(emp);
-      // Unlock all steps if an existing employee is selected
       setPassedSteps([1, 2, 3, 4, 5, 6, 7]);
     } else {
-      // Reset wizard to "New Employee" mode
-      setEmployeeId(null);
-      setEmployeeName("New Employee");
-      setSelectedEmployeeData(null);
-      setPassedSteps([1]);
-      setActiveTab(1);
+      resetWizard();
     }
   };
 
-  /**
-   * Progresses the wizard and updates the global employee context
-   */
+  const resetWizard = () => {
+    setEmployeeId(null);
+    setEmployeeName("New Employee");
+    setSelectedEmployeeData(null);
+    setPassedSteps([1]);
+    setActiveTab(1);
+  };
+
   const handleNext = (id?: number, name?: string, rawData?: any) => {
     if (id) setEmployeeId(id);
     if (name) setEmployeeName(name);
@@ -87,7 +88,6 @@ const OnboardingWizard = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        {/* Breadcrumbs */}
         <Row>
           <Col xs={12}>
             <div className="page-title-box d-sm-flex align-items-center justify-content-between">
@@ -101,38 +101,31 @@ const OnboardingWizard = () => {
             </div>
           </Col>
         </Row>
-
-        {/* Search & Filter Section with Solid Background fix */}
-        <Row className="mb-4 justify-content-center">
+        <Row className="mb-4">
           <Col lg={12}>
-            <Card className="border-0 shadow-sm bg-white" style={{ zIndex: 1001 }}>
+            <Card className="border-0 shadow-sm bg-light-subtle">
               <CardBody className="p-3">
                 <Row className="align-items-center">
-                  <Col md={8}>
-                    <Label className="fw-bold text-primary mb-1">
-                      <i className="ri-search-eye-line me-1"></i> Quick Search Existing Employee
-                    </Label>
+                  <Col md={6}>
+                    <Label className="fw-bold text-primary mb-1">Search Existing Employee</Label>
                     <Select
                       isClearable
-                      isLoading={loadingEmployees}
-                      placeholder="Type name or Payroll ID to resume onboarding..."
+                      placeholder="Filter by Name or Payroll ID..."
                       options={employees?.map((e: any) => ({
-                        label: `[${e.employee_code || 'NEW'}] ${e.first_name} ${e.last_name}`,
+                        label: `[${e.employee_code}] ${e.first_name} ${e.last_name}`,
                         value: e
                       }))}
                       onChange={handleSelectEmployee}
-                      maxMenuHeight={250}
+                      maxMenuHeight={200}
                       classNamePrefix="react-select"
-                      styles={{
-                        menu: (provided) => ({ ...provided, zIndex: 9999, backgroundColor: "white" }),
-                        control: (provided) => ({ ...provided, backgroundColor: "white" })
-                      }}
+                      menuPortalTarget={document.body} 
+                      styles={customSelectStyles}
                     />
                   </Col>
-                  <Col md={4} className="text-md-end mt-2 mt-md-0 d-none d-md-block">
-                    <div className="text-muted fs-12 italic">
-                       Search results are synced with central database.
-                    </div>
+                  <Col md={6} className="text-md-end mt-2 mt-md-0">
+                    <span className="text-muted fs-12 italic">
+                       Quick Edit: Select a record to skip directly to specific sections.
+                    </span>
                   </Col>
                 </Row>
               </CardBody>
@@ -187,74 +180,29 @@ const OnboardingWizard = () => {
                     ))}
                   </Nav>
                 </div>
-
                 {employeeId && activeTab < 7 && (
-                  <div className="alert alert-light border-start border-primary mb-4 shadow-sm py-2">
+                  <div className="alert alert-light border-start border-primary mb-4 shadow-sm">
                     <div className="d-flex align-items-center">
                       <i className="ri-user-follow-line text-primary fs-20 me-3"></i>
-                      <div>
-                        Currently managing: <span className="fw-bold text-primary">{employeeName}</span> 
-                        <span className="ms-2 badge bg-primary-subtle text-primary">ID: {employeeId}</span>
-                      </div>
+                      <div>Editing Record: <span className="fw-bold text-primary">{employeeName}</span></div>
                     </div>
                   </div>
                 )}
 
                 <TabContent activeTab={activeTab}>
-                  <TabPane tabId={1}>
-                    <Step1Primary onNext={handleNext} existingData={selectedEmployeeData} />
-                  </TabPane>
-                  
-                  <TabPane tabId={2}>
-                    <Step2Employment 
-                      employeeId={employeeId} 
-                      existingData={selectedEmployeeData} 
-                      onNext={handleNext} 
-                      onBack={handleBack} 
-                    />
-                  </TabPane>
-                  
-                  <TabPane tabId={3}>
-                    <Step3Contact 
-                      employeeId={employeeId} 
-                      existingData={selectedEmployeeData} 
-                      onNext={handleNext} 
-                      onBack={handleBack} 
-                    />
-                  </TabPane>
-                  
-                  <TabPane tabId={4}>
-                    <Step4Emergency 
-                      employeeId={employeeId} 
-                      existingData={selectedEmployeeData} 
-                      onNext={handleNext} 
-                      onBack={handleBack} 
-                    />
-                  </TabPane>
-                  
-                  <TabPane tabId={5}>
-                    <Step5Bank 
-                      employeeId={employeeId} 
-                      existingData={selectedEmployeeData} 
-                      onNext={handleNext} 
-                      onBack={handleBack} 
-                    />
-                  </TabPane>
-                  
-                  <TabPane tabId={6}>
-                    <Step6Salary 
-                      employeeId={employeeId} 
-                      existingData={selectedEmployeeData} 
-                      onNext={handleNext} 
-                      onBack={handleBack} 
-                    />
-                  </TabPane>
-                  
+                  <TabPane tabId={1}><Step1Primary onNext={handleNext} existingData={selectedEmployeeData} /></TabPane>
+                  <TabPane tabId={2}><Step2Employment employeeId={employeeId} existingData={selectedEmployeeData} onNext={handleNext} onBack={handleBack} /></TabPane>
+                  <TabPane tabId={3}><Step3Contact employeeId={employeeId} existingData={selectedEmployeeData} onNext={handleNext} onBack={handleBack} /></TabPane>
+                  <TabPane tabId={4}><Step4Emergency employeeId={employeeId} existingData={selectedEmployeeData} onNext={handleNext} onBack={handleBack} /></TabPane>
+                  <TabPane tabId={5}><Step5Bank employeeId={employeeId} existingData={selectedEmployeeData} onNext={handleNext} onBack={handleBack} /></TabPane>
+                  <TabPane tabId={6}><Step6Salary employeeId={employeeId} existingData={selectedEmployeeData} onNext={handleNext} onBack={handleBack} /></TabPane>
                   <TabPane tabId={7}>
                     <Step7Success 
                       employeeId={employeeId} 
-                      employeeName={employeeName} 
-                      onJumpToStep={jumpToStep} 
+                      employeeName={employeeName}
+                      existingData={selectedEmployeeData}
+                      onJumpToStep={jumpToStep}
+                      onResetWizard={resetWizard}
                     />
                   </TabPane>
                 </TabContent>

@@ -85,7 +85,22 @@ const Step2Employment = ({ employeeId, onNext, onBack, existingData }: Step2Prop
       )}
 
       <Row className="justify-content-center">
+
         <Col md={8}>
+          <div className="mb-3">
+            <Label className="form-label">Employment Type</Label>
+            <select
+              className={`form-select ${
+                formik.touched.employment_type && formik.errors.employment_type ? "is-invalid" : ""
+              }`}
+              {...formik.getFieldProps("employment_type")}
+            >
+              <option value="Permanent and Pensionable">Permanent and Pensionable</option>
+              <option value="Casual">Casual</option>
+              <option value="Fixed-Term Contracts">Fixed-Term Contracts</option>
+            </select>
+            <FormFeedback>{formik.errors.employment_type}</FormFeedback>
+          </div>
           <div className="mb-4">
             <Label className="form-label">Department</Label>
             <select
