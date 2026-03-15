@@ -162,6 +162,12 @@ const Navdata = () => {
                     badgeColor: "danger",
                 },
                 {
+                    id: "employee-list",
+                    label: "EmployeeList",
+                    link: "/employeelist",
+                    parentId: "dashboard"
+                },
+                {
                     id: "analytics",
                     label: "Analytics",
                     link: "/dashboard-analytics",

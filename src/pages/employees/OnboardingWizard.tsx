@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Container, Row, Col, Card, CardBody, Nav, NavItem, NavLink, TabContent, TabPane, Progress, Label } from "reactstrap";
 import Select from "react-select";
 import classnames from "classnames";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 import { useEmployeesBase } from "../../Components/Hooks/employee/useEmployeebase";
 import Step1Primary from "./Step1Primary";
@@ -14,6 +14,7 @@ import Step6Salary from "./Step6Salary";
 import Step7Success from "./Step7Success";
 
 const OnboardingWizard = () => {
+  const { id } = useParams();
   const [activeTab, setActiveTab] = useState<number>(1);
   const [passedSteps, setPassedSteps] = useState<number[]>([1]);
   const [employeeId, setEmployeeId] = useState<number | null>(null);
@@ -42,6 +43,18 @@ const OnboardingWizard = () => {
       cursor: "pointer"
     }),
   };
+
+  React.useEffect(() => {
+    if (id && employees && employees.length > 0) {
+      const emp = employees.find((e: any) => e.id.toString() === id.toString());
+      if (emp) {
+        setEmployeeId(emp.id);
+        setEmployeeName(emp.full_name || `${emp.first_name} ${emp.last_name}`);
+        setSelectedEmployeeData(emp);
+        setPassedSteps([1, 2, 3, 4, 5, 6, 7]);
+      }
+    }
+  }, [id, employees]);
 
   const handleSelectEmployee = (selectedOption: any) => {
     if (selectedOption) {

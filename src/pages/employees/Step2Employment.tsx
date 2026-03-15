@@ -15,6 +15,7 @@ import { useEmployeeBaseMutation } from "../../Components/Hooks/employee/useEmpl
 import { useDepartments } from "../../Components/Hooks/useDepartment";
 import { useDesignations } from "../../Components/Hooks/useDesignation";
 import { UpdateEmployeePayload } from "../../types/employee/employeebase";
+import { EmploymentType } from "../../types/employee/employeebase";
 import { toast } from "react-toastify";
 import { handleBackendErrors } from "../../helpers/form_utils";
 
@@ -95,11 +96,16 @@ const Step2Employment = ({ employeeId, onNext, onBack, existingData }: Step2Prop
               }`}
               {...formik.getFieldProps("employment_type")}
             >
-              <option value="Permanent and Pensionable">Permanent and Pensionable</option>
-              <option value="Casual">Casual</option>
-              <option value="Fixed-Term Contracts">Fixed-Term Contracts</option>
+              <option value="">-- Select Employment Type --</option>
+              {Object.values(EmploymentType).map((type) => (
+                <option key={type} value={type}>
+                {type}
+                </option>
+              ))}
             </select>
-            <FormFeedback>{formik.errors.employment_type}</FormFeedback>
+            {formik.touched.employment_type && formik.errors.employment_type && (
+              <FormFeedback type="invalid">{formik.errors.employment_type}</FormFeedback>
+            )}
           </div>
           <div className="mb-4">
             <Label className="form-label">Department</Label>

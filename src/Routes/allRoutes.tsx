@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 
 //user registration
 import OnboardingWizard from "../pages/employees/OnboardingWizard";
+import EmployeeList from "../pages/emplooyeesList/EmployeeList"
 
 //Dashboard
 import DashboardAnalytics from "../pages/DashboardAnalytics";
@@ -202,7 +203,9 @@ const authProtectedRoutes = [
   { path: "/apps-file-manager", component: <FileManager /> },
 
   //settings
+  { path: "/employeelist", component: <EmployeeList />},
   { path: "/employee", component: <OnboardingWizard />},
+  { path: "/employee/:id", component: <OnboardingWizard /> },
   { path: "/settings", component: <SettingsHub /> },
   { path: "/settings/company-profile", component: <CompanyProfile /> },
   { path: "/settings/org-structure", component: <OrgStructure /> },

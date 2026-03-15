@@ -1,7 +1,14 @@
 export enum EmployeeStatus {
     ACTIVE = "ACTIVE",
     INACTIVE = "INACTIVE",
-    TERMINATED = "TERMINATED"
+    TERMINATED = "TERMINATED",
+     SUSPENDED = "SUSPENDED"
+}
+
+export enum EmploymentType {
+  PERMANENT = "Permanent and Pensionable",
+  CASUAL = "Casual",
+  FIXED_TERM = "Fixed-Term Contracts",
 }
 
 export interface EmployeeBase {
@@ -16,6 +23,7 @@ export interface EmployeeBase {
   first_name: string;
   middle_name: string;
   last_name?: string | null;
+  avatar?: string | null;
   employment_type?: string | null;
   national_id?: string | null;
 
