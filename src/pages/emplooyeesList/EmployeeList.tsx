@@ -31,6 +31,13 @@ const EmployeeList = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  
+  const [showAll, setShowAll] = useState<boolean>(false);
+
+  const finalTableData = useMemo(() => {
+    if (showAll) return employees;
+    return employees.filter((emp: any) => emp.status === EmployeeStatus.ACTIVE);
+  }, [employees, showAll]);
 
   const onClickDeactivate = (employee: any) => {
     setSelectedEmployee(employee);
@@ -70,10 +77,10 @@ const EmployeeList = () => {
         (emp) => onClickDeactivate(emp), 
         (emp) => handleActivateEmployee(emp)
     ), 
-  [navigate, employees]);
+  [navigate]);
 
   const table = useReactTable({
-    data: employees,
+    data: finalTableData,
     columns,
     state: { globalFilter, columnFilters },
     onGlobalFilterChange: setGlobalFilter,
@@ -88,7 +95,7 @@ const EmployeeList = () => {
     const uniqueDepts = Array.from(new Set(employees.map((e: any) => e.department_name))).filter(Boolean);
     return uniqueDepts.map((dept) => ({ value: dept, label: dept }));
   }, [employees]);
-
+  
   return (
     <div className="page-content">
       <Container fluid>
@@ -104,7 +111,13 @@ const EmployeeList = () => {
               deptOptions={deptOptions}
               onDeptChange={(opt) => table.getColumn("department_name")?.setFilterValue(opt?.value || "")}
               onTypeChange={(opt) => table.getColumn("employment_type")?.setFilterValue(opt?.value || "")}
-              onReset={() => { setGlobalFilter(""); setColumnFilters([]); }}
+              onReset={() => { 
+                setGlobalFilter(""); 
+                setColumnFilters([]); 
+                setShowAll(false);
+              }}
+              showAll={showAll}
+              onStatusToggle={setShowAll}
             />
 
             <EmployeeTable table={table} isLoading={isLoading} />
@@ -124,4 +137,4 @@ const EmployeeList = () => {
   );
 };
 
-export default EmployeeList;   
+export default EmployeeList;

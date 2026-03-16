@@ -16,7 +16,7 @@ const EmployeeStats = ({ data }: StatsProps) => {
     return createdDate && createdDate >= thirtyDaysAgo && createdDate <= now;
   }).length;
 
-  const exited = data.filter((emp) => emp.status === EmployeeStatus.TERMINATED).length;
+  const exited = data.filter((emp) => emp.status === EmployeeStatus.INACTIVE).length;
 
   const onLeave = 0;
 

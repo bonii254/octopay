@@ -27,7 +27,7 @@ export const LeaveTypeService = {
     },
 
     updateLeaveType: async (id: number, payload: UpdateLeaveTypeRequest): Promise<LeaveType> => {
-        const response = await api.update(`${BASE_URL}/update/${id}`, payload);
+        const response = await api.update(`${BASE_URL}/${id}`, payload);
         return response.leavetype;
     },
     

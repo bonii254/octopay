@@ -11,6 +11,12 @@ export enum EmploymentType {
   FIXED_TERM = "Fixed-Term Contracts",
 }
 
+export interface LegacyBalance {
+  leave_type_id: number;
+  balance: number;
+  carry_forward?: number;
+}
+
 export interface EmployeeBase {
   id: number;
   company_id: number;
@@ -54,6 +60,7 @@ export interface CreateEmployeePayload {
   department_id?: number | null;
   designation_id?: number | null;
   shift_id?: number | null;
+  legacy_balances?: number | null;
 
   first_name: string;
   middle_name: string;
