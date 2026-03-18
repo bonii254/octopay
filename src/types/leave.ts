@@ -16,23 +16,6 @@ export interface LeaveType {
     policy_metadata: any;
 }
 
-export interface LeaveBalance {
-    id: number;
-    employee_id: number;
-    leave_type_id: number;
-    fiscal_year: number;
-    opening_balance: number;
-    balance_days: number;
-    carried_forward: number;
-    frozen: boolean;
-    last_updated: string;
-    employee_name?: string;
-    leave_type_name?: string;
-    remaining_days?: number;
-}
-
 export type CreateLeaveTypeRequest = Omit<LeaveType, "id">;
 export type UpdateLeaveTypeRequest = Partial<CreateLeaveTypeRequest>;
 
-export type CreateLeaveBalanceRequest = Omit<LeaveBalance, "id" | "last_updated" | "balance_days">;
-export type UpdateLeaveBalanceRequest = Partial<CreateLeaveBalanceRequest>;

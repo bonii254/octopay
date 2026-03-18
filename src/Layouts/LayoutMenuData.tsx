@@ -168,6 +168,12 @@ const Navdata = () => {
                     parentId: "dashboard"
                 },
                 {
+                    id: "leave-balances",
+                    label: "LeaveBalances",
+                    link: "/leavebalance",
+                    parentId: "dashboard"
+                },
+                {
                     id: "analytics",
                     label: "Analytics",
                     link: "/dashboard-analytics",
