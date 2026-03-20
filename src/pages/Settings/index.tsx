@@ -25,6 +25,7 @@ import LeaveLoanRules from "./components/LeaveLoanRules";
 import TaxBandSettings from "./components/TaxBandConfig"
 import LoanTypeSettings from "./components/department/loanTypes"
 import UserManagement from "./components/UserManagment"
+import HolidaySettings from "./components/publicHolidays/HolidaySettings"
 
 const SettingsHub = () => {
   const [activeTab, setActiveTab] = useState("1");
@@ -47,6 +48,8 @@ const SettingsHub = () => {
         return "Leave & Loan Rules";
       case "8":
         return "Loan Types"
+      case "9":
+        return "Public Holidays"
       default:
         return "Settings";
     }
@@ -278,6 +281,29 @@ const SettingsHub = () => {
                       </div>
                     </NavLink>
                   </NavItem>
+
+                  <NavItem className="mb-2">
+                    <NavLink
+                      style={{ cursor: "pointer" }}
+                      className={classnames({
+                        "active bg-light text-primary": activeTab === "9",
+                        "text-body": activeTab !== "9",
+                      })}
+                      onClick={() => toggleTab("9")}
+                    >
+                      <div className="d-flex align-items-center">
+                        <div className="flex-shrink-0">
+                          <i className="ri-flag-line fs-18 me-3"></i>
+                        </div>
+                        <div className="flex-grow-1">
+                          <h5 className="mb-0 fs-14">Public Holidays</h5>
+                          <p className="mb-0 fs-12 text-muted">
+                            Statutory & Observed Dates
+                          </p>
+                        </div>
+                      </div>
+                    </NavLink>
+                  </NavItem>
                 </Nav>
               </CardBody>
             </Card>
@@ -317,6 +343,9 @@ const SettingsHub = () => {
                   </TabPane>
                   <TabPane tabId="8">
                     <LoanTypeSettings />
+                  </TabPane>
+                  <TabPane tabId="9">
+                    <HolidaySettings />
                   </TabPane>
                 </TabContent>
               </CardBody>

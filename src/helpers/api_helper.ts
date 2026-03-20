@@ -28,7 +28,6 @@ axios.interceptors.response.use(
   async (error: any) => {
     const originalRequest = error.config;
 
-    // --- 1. HANDLE AUTH REFRESH LOGIC ---
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (originalRequest.url.includes("/login")) {
         return Promise.reject("Invalid credentials. Please try again.");
@@ -97,8 +96,26 @@ class APIClient {
   create = (url: string, data: any, config?: AxiosRequestConfig): Promise<any> => {
     return axios.post(url, data, config);
   };
+  createWithFile = (url: string, data: FormData, config?: AxiosRequestConfig): Promise<any> => {
+    return axios.post(url, data, {
+      ...config,
+      headers: {
+        ...config?.headers,
+        "Content-Type": undefined,
+      },
+    });
+  };
   update = (url: string, data: any, config?: AxiosRequestConfig): Promise<any> => {
     return axios.patch(url, data, config);
+  };
+  patchWithFile = (url: string, data: FormData, config?: AxiosRequestConfig): Promise<any> => {
+    return axios.patch(url, data, {
+      ...config,
+      headers: {
+        ...config?.headers,
+        "Content-Type": undefined,
+      },
+    });
   };
   put = (url: string, data: any, config?: AxiosRequestConfig): Promise<any> => {
     return axios.put(url, data, config);

@@ -128,7 +128,6 @@ const TaxBandSettings = () => {
 
   return (
     <React.Fragment>
-      {/* Simulation Header */}
       <Card className="border-0 bg-light mb-4 shadow-none">
         <CardBody>
           <Row className="align-items-center">
@@ -154,7 +153,6 @@ const TaxBandSettings = () => {
         </CardBody>
       </Card>
 
-      {/* Year Tabs */}
       <div className="d-flex align-items-center mb-3">
         <Label className="me-3 mb-0 text-muted fw-bold fs-12 text-uppercase">Historical View:</Label>
         <Nav pills className="nav-pills-sm">
@@ -169,9 +167,6 @@ const TaxBandSettings = () => {
         </Nav>
       </div>
 
-      
-
-      {/* Table Section */}
       <div className="table-responsive">
         <Table hover className="align-middle table-nowrap">
           <thead className="table-light">
@@ -213,8 +208,6 @@ const TaxBandSettings = () => {
           </tbody>
         </Table>
       </div>
-
-      {/* Register/Edit Modal */}
       <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)} centered>
         <ModalHeader className="bg-light p-3">{isEditMode ? 'Update Band' : 'Create Band'}</ModalHeader>
         <Form onSubmit={formik.handleSubmit}>
@@ -254,7 +247,6 @@ const TaxBandSettings = () => {
         </Form>
       </Modal>
 
-      {/* Delete Modal */}
       <Modal isOpen={deleteModal} toggle={() => setDeleteModal(false)} centered>
         <ModalBody className="text-center p-5">
           <div className="text-danger mb-4"><i className="ri-delete-bin-line display-4"></i></div>

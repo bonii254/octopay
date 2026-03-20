@@ -1,11 +1,23 @@
 import React from "react";
+import { useParams } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 
 //user registration
 import OnboardingWizard from "../pages/employees/OnboardingWizard";
 import EmployeeList from "../pages/emplooyeesList/EmployeeList"
 import LeaveBalanceLedger from "../pages/leave/leavebalances/leaveBalanceList";
+import LeaveRequisition from "../pages/leave/LeaveRequisation/index"
 
+const LeaveRequisitionWrapper = () => {
+  const { id } = useParams();
+  
+  // Convert string ID to number for OctoPay logic
+  const employeeId = id ? parseInt(id, 10) : 0;
+
+  return <LeaveRequisition employeeId={employeeId} />;
+};
+
+export default LeaveRequisitionWrapper;
 //Dashboard
 import DashboardAnalytics from "../pages/DashboardAnalytics";
 import DashboardCrm from "../pages/DashboardCrm";
@@ -207,7 +219,8 @@ const authProtectedRoutes = [
   { path: "/employeelist", component: <EmployeeList />},
   { path: "/employee", component: <OnboardingWizard />},
   { path: "/employee/:id", component: <OnboardingWizard /> },
-  { path: "//leavebalance", component: <LeaveBalanceLedger />},
+  { path: "/leavebalance", component: <LeaveBalanceLedger />},
+  { path: "/leave-requisition/:id", component: <LeaveRequisitionWrapper />},
   { path: "/settings", component: <SettingsHub /> },
   { path: "/settings/company-profile", component: <CompanyProfile /> },
   { path: "/settings/org-structure", component: <OrgStructure /> },
