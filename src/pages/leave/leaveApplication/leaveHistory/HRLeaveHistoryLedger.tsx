@@ -17,6 +17,8 @@ import TablePagination from "../../leavebalances/TablePagination";
 import { useLeaveApplications, useLeaveActions } from "../../../../Components/Hooks/useLeaveApplications";
 import { getLeaveHistoryColumns } from "./leaveHistoryColumns"; 
 import DeleteModal from "./DeleteModal";
+import LeavePrintPreview from "./LeavePrintPreview";
+
 
 const HRLeaveHistoryLedger = () => {
   const navigate = useNavigate();
@@ -28,11 +30,19 @@ const HRLeaveHistoryLedger = () => {
   const [dateRange, setDateRange] = useState<Date[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState<any>(null);
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const [printData, setPrintData] = useState<any>(null);
 
   const handleEdit = (leave: any) => {
     navigate('/leave-requisition', { state: { editLeave: leave } });
   };
-  const handlePrint = (id: number) => console.log("Print", id);
+  const handlePrint = (id: number) => {
+    const record = allLeaves.find((l: any) => l.id === id);
+    if (record) {
+      setPrintData(record);
+      setShowPrintModal(true);
+    }
+  };
   const handleDeleteTrigger = (leave: any) => {
     setSelectedLeave(leave);
     setShowDeleteModal(true);
@@ -50,7 +60,7 @@ const HRLeaveHistoryLedger = () => {
   };
   const columns = useMemo(() => 
     getLeaveHistoryColumns(handleEdit, handleDeleteTrigger, handlePrint), 
-  []);
+  [allLeaves]);
   const filteredData = useMemo(() => {
     if (dateRange.length < 2) return allLeaves;
     const [start, end] = dateRange;
@@ -126,6 +136,11 @@ const HRLeaveHistoryLedger = () => {
                 console.log("Deleting ID:", selectedLeave?.id);
                 setShowDeleteModal(false);
             }}
+          />
+          <LeavePrintPreview 
+            show={showPrintModal}
+            onClose={() => setShowPrintModal(false)}
+            data={printData}
           />
         </Container>
       </div>
