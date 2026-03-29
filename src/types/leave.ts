@@ -9,7 +9,7 @@ export interface LeaveType {
     accrual_enabled: boolean;
     accrual_rate: number;
     min_months_before_eligibility: number | null;
-    gender_restriction: "Male" | "Female" | null;
+    gender_restriction: "Male" | "Female" | "ALL";
     requires_documentation: boolean;
     validity_period_start: string | null;
     validity_period_end: string | null;

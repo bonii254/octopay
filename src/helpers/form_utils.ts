@@ -4,16 +4,18 @@ export const handleBackendErrors = (
   setGlobalError: (msg: string | null) => void
 ) => {
   setGlobalError(null);
-  const errorData = error?.response?.data || error;
+  const responseData = error?.response?.data;
+  const errorData = responseData?.errors || responseData || error;
 
   if (typeof errorData === 'object' && errorData !== null) {
     const flattenedErrors: Record<string, string> = {};
     
     Object.keys(errorData).forEach((key) => {
       const val = errorData[key];
-      const message = Array.isArray(val) ? val[0] : String(val);
+      
+      const message = (Array.isArray(val) ? val : String(val)) as string;
 
-      if (key === 'error' || key === 'details' || key === 'message' || key === 'type') {
+      if (key === 'error' || key === 'details' || key === 'message' || key === 'type' || key === '_schema') {
         setGlobalError(message);
       } else {
         flattenedErrors[key] = message;

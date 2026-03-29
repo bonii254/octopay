@@ -1,76 +1,156 @@
-export enum LeaveStatus {
-  PENDING = "pending",
-  APPROVED = "approved",
-  REJECTED = "rejected",
-  CANCELLED = "cancelled"
-}
+export type LeaveStatus = 'pending' | 'approved' | 'rejected';
+export type LeavePortion = 'FULL' | 'AM' | 'PM';
+export type AlertLevel = 'NORMAL' | 'WARNING' | 'CRITICAL';
 
-export enum NotificationType {
-  LEAVE_STATUS = "LEAVE_STATUS",
-  LEAVE_REQUEST = "LEAVE_REQUEST",
-  PAYROLL = "PAYROLL",
-  SYSTEM = "SYSTEM",
-  SECURITY = "SECURITY"
-}
 
-export interface ApprovalChainEntry {
-  user: string;
-  role: string;
-  action: string;
-  note: string | null;
+export interface IApprovalStep {
+  user_id: number;
+  action: 'CREATED' | 'APPROVED' | 'REJECTED';
   timestamp: string;
 }
 
-export interface ContextualIntelligence {
-  conflicts: number;
-  conflict_details: string[];
-  department_size: number;
-}
-
-export interface LeaveBurnRate {
-  status: "CRITICAL" | "HEALTHY";
-  earned_to_date: number;
-  projected_year_end: number;
-}
-
-export interface LeaveApplication {
+export interface ILeaveApplication {
   id: number;
+
   employee_id: number;
   leave_type_id: number;
-  
-  start_date: string; 
-  end_date: string;   
-  total_days: number;
-  reason?: string | null;
-  
-  status: LeaveStatus;
-  applied_on: string; 
-  
-  approved_by?: number | null;
-  approved_on?: string | null;
-  reviewed_by?: number | null;
-  reviewed_on?: string | null;
-  rejection_reason?: string | null;
-  
-  document_urls: string[];
-  approval_chain: ApprovalChainEntry[];
-  is_deleted: boolean;
 
-  employee_name?: string | null;
-  leave_type_name?: string | null;
-  documents?: string[];
+  start_date: string;
+  end_date: string;
+  start_portion: LeavePortion;
+  end_portion: LeavePortion;
+
+  total_days: number;
+  reason: string | null;
+
+  status: LeaveStatus;
+
+  applied_on: string;
+
+  approved_by: number | null;
+  approved_on: string | null;
+
+  rejection_reason: string | null;
+
+  approval_chain: IApprovalStep[];
+
+  document_urls: string[];
+
+  employee_payroll?: string;
+  employee_name?: string;
+  leave_type_name?: string;
 }
 
-export interface Notification {
+
+export interface ICreateLeavePayload {
+  employee_id: number;
+  leave_type_id: number;
+
+  start_date: string;
+  end_date: string;
+
+  start_portion?: LeavePortion;
+  end_portion?: LeavePortion;
+
+  reason?: string | null;
+
+  document_urls?: string[];
+}
+
+export interface IUpdateLeavePayload {
+  leave_type_id?: number;
+
+  start_date?: string;
+  end_date?: string;
+
+  start_portion?: LeavePortion;
+  end_portion?: LeavePortion;
+
+  reason?: string | null;
+
+  document_urls?: string[];
+}
+
+export interface IPreviewLeavePayload {
+  employee_id: number;
+  leave_type_id: number;
+
+  start_date: string;
+  end_date: string;
+
+  start_portion?: LeavePortion;
+  end_portion?: LeavePortion;
+}
+
+export interface ILeavePreviewResponse {
+  total_days: number;
+
+  database_balance: number;
+  pending_deductions: number;
+
+  effective_remaining_before: number;
+  effective_remaining_after: number;
+
+  holidays_in_range: string[];
+
+  conflicts: Array<{
+    start: string;
+    end: string;
+    status: LeaveStatus;
+  }>;
+}
+
+export interface IRejectLeavePayload {
+  reason: string;
+}
+
+export interface ILeaveIntelligenceData {
+  conflict_count: number;
+
+  conflicts: Array<{
+    employee_name: string;
+    status: LeaveStatus;
+    dates: string;
+    total_days: number;
+  }>;
+
+  department_size: number;
+
+  remaining_capacity_percent: number;
+  alert_level: AlertLevel;
+
+  projected_headcount: number;
+}
+
+export interface ILeaveIntelligenceResponse {
+  data: ILeaveIntelligenceData;
+}
+
+export interface ILeaveIntelligenceFullResponse {
+  status: 'success';
+  leave_id: number;
+  data: ILeaveIntelligenceData;
+}
+
+export interface INotification {
   id: number;
   user_id: number;
+
   title: string;
   message: string;
-  type: NotificationType;
-  link?: string | null;
+
   is_read: boolean;
-  read_at?: string | null;
-  created_at: string; 
+  created_at: string;
+}
+
+export interface IApiResponse<T> {
+  message?: string;
+  data: T;
+}
+
+export interface IApiErrorResponse {
+  error?: string;
+  errors?: Record<string, string[]>;
 }
 
 export interface PublicHoliday {

@@ -173,11 +173,24 @@ const Navdata = () => {
                     link: "/leavebalance",
                     parentId: "dashboard"
                 },
+                
                 {
                     id: "leave-application",
                     label: "Apply for Leave", // Better UX label
                     icon: "ri-calendar-check-line", // Adding a professional icon
-                    link: `/leave-application`, // DYNAMIC LINK
+                    link: `/leave-requisition`, // DYNAMIC LINK
+                    parentId: "dashboard"
+                },
+                {
+                    id: "leave-balances",
+                    label: "LeaveApplications",
+                    link: "/list-leave-applications",
+                    parentId: "dashboard"
+                },
+                {
+                    id: "leave-balances",
+                    label: "LeaveApproave",
+                    link: "/leave-approave",
                     parentId: "dashboard"
                 },
                 {

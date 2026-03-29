@@ -7,6 +7,9 @@ import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import rootReducer from "./slices";
 
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
@@ -30,6 +33,7 @@ root.render(
       <React.Fragment>
         <BrowserRouter basename={process.env.PUBLIC_URL}>
           <App />
+          <ToastContainer position="top-right" autoClose={3000} />
         </BrowserRouter>
       </React.Fragment>
     </Provider>
