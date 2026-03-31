@@ -18,7 +18,8 @@ import {
 export const loanKeys = {
   all: ["loans"] as const,
   lists: () => [...loanKeys.all, "list"] as const,
-  list: (params?: Record<string, unknown>) => [...loanKeys.lists(), params] as const,
+  list: (params?: { status?: string; employee_id?: number }) => 
+  [...loanKeys.lists(), JSON.stringify(params || {})] as const,
   details: () => [...loanKeys.all, "detail"] as const,
   detail: (id: number) => [...loanKeys.details(), id] as const,
   schedules: (id: number) => [...loanKeys.detail(id), "schedule"] as const,

@@ -14,7 +14,7 @@ import {
 } from "../types/loanApplication";
 
 const api = new APIClient();
-const BASE_URL = "/api/loan";
+const BASE_URL = "/loan";
 
 export const LoanService = {
     getAllLoans: async (filters?: { status?: string; employee_id?: number }): Promise<Loan[]> => {

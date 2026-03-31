@@ -9,6 +9,8 @@ import LeaveBalanceLedger from "../pages/leave/leavebalances/leaveBalanceList";
 import HRLeaveApplication from "../pages/leave/leaveApplication/HRLeaveApplication"
 import HRLeaveManagementList from "../pages/leave/leaveApplication/Reviewhub"
 import HRLeaveHistoryLedger from "../pages/leave/leaveApplication/leaveHistory/HRLeaveHistoryLedger";
+import LoanDashboard from "../pages/Loans/index";
+import HRLoanApplication from "../pages/Loans/loanApplication/HRLoanApplication"
 
 //Dashboard
 import DashboardAnalytics from "../pages/DashboardAnalytics";
@@ -213,8 +215,9 @@ const authProtectedRoutes = [
   { path: "/employee/:id", component: <OnboardingWizard /> },
   { path: "/leavebalance", component: <LeaveBalanceLedger />},
   { path: "/leave-requisition", component: <HRLeaveApplication />},
-  { path: "/leave-approave", component: <HRLeaveManagementList/>},
+  { path: "/leave-approve", component: <HRLeaveManagementList/>},
   { path: "/list-leave-applications", component: <HRLeaveHistoryLedger /> },
+  { path: "/loan-requisition", component: <HRLoanApplication />},
   { path: "/settings", component: <SettingsHub /> },
   { path: "/settings/company-profile", component: <CompanyProfile /> },
   { path: "/settings/org-structure", component: <OrgStructure /> },

@@ -188,9 +188,21 @@ const Navdata = () => {
                     parentId: "dashboard"
                 },
                 {
-                    id: "leave-balances",
-                    label: "LeaveApproave",
-                    link: "/leave-approave",
+                    id: "leave-approve",
+                    label: "LeaveApprove",
+                    link: "/leave-approve",
+                    parentId: "dashboard"
+                },
+                {
+                    id: "loans",
+                    label: "Loans",
+                    link: "/loans",
+                    parentId: "dashboard"
+                },
+                {
+                    id: "loan-applications",
+                    label: "Loan Applications",
+                    link: "/loan-requisition",
                     parentId: "dashboard"
                 },
                 {

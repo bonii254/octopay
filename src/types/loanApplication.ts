@@ -7,6 +7,7 @@ export type DecimalString = string;
 
 
 export interface CreateLoanRequest {
+  id?: number;
   employee_id: number;
   loan_type_id: number;
   principal_amount: DecimalString;

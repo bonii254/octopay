@@ -50,6 +50,7 @@ export interface EmployeeBase {
   department_name?: string | null;
   designation_title?: string | null;
   shift_name?: string | null;
+  salary?: number | null;
 
   has_user_account?: boolean;
   has_bank_details?: boolean;
