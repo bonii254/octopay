@@ -11,6 +11,9 @@ import HRLeaveManagementList from "../pages/leave/leaveApplication/Reviewhub"
 import HRLeaveHistoryLedger from "../pages/leave/leaveApplication/leaveHistory/HRLeaveHistoryLedger";
 import LoanDashboard from "../pages/Loans/index";
 import HRLoanApplication from "../pages/Loans/loanApplication/HRLoanApplication"
+import HRLoanManagementList from "../pages/Loans/loanApproave/loanApproave"
+import EmployeeComponentAssignment from "../pages/recurringComponents/EmployeeComponentAssignment";
+import MatrixAssignmentTable from "../pages/recurringComponents/MatrixAssignmentTable";
 
 //Dashboard
 import DashboardAnalytics from "../pages/DashboardAnalytics";
@@ -218,6 +221,9 @@ const authProtectedRoutes = [
   { path: "/leave-approve", component: <HRLeaveManagementList/>},
   { path: "/list-leave-applications", component: <HRLeaveHistoryLedger /> },
   { path: "/loan-requisition", component: <HRLoanApplication />},
+  { path: "/loan-approve", component: <HRLoanManagementList/>},
+  { path: "/recurring-components", component: <EmployeeComponentAssignment /> },
+  { path: "/list-recurring-components", component: <MatrixAssignmentTable /> },
   { path: "/settings", component: <SettingsHub /> },
   { path: "/settings/company-profile", component: <CompanyProfile /> },
   { path: "/settings/org-structure", component: <OrgStructure /> },

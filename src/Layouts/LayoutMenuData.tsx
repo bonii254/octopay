@@ -206,6 +206,24 @@ const Navdata = () => {
                     parentId: "dashboard"
                 },
                 {
+                    id: "loan-approve",
+                    label: "Loan Approve",
+                    link: "/loan-approve",
+                    parentId: "dashboard"
+                },
+                {   id: "recurring-components",
+                    label: "Recurring Components",
+                    link: "/recurring-components",
+                    parentId: "dashboard"
+                },
+                {
+                    id: "list-recurring-components",
+                    label: "List Recurring Components",
+                    link: "/list-recurring-components",
+                    parentId: "dashboard"
+
+                },
+                {
                     id: "analytics",
                     label: "Analytics",
                     link: "/dashboard-analytics",
