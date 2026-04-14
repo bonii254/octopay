@@ -17,15 +17,8 @@ import {
 import classnames from "classnames";
 import { Link } from "react-router-dom";
 
-import CompanySettings from "./components/company/CompanyProfile";
-import CompanyStructureSettings from "./components/department/CompanyStructureSettings";
-import StatutoryConfig from "./components/StatutoryConfig";
-import PayrollMaster from "./components/PayrollMaster";
-import LeaveLoanRules from "./components/LeaveLoanRules";
-import TaxBandSettings from "./components/TaxBandConfig"
-import LoanTypeSettings from "./components/department/loanTypes"
-import UserManagement from "./components/UserManagment"
-import HolidaySettings from "./components/publicHolidays/HolidaySettings"
+
+import UserManagement from "./users"
 
 const SettingsHub = () => {
   const [activeTab, setActiveTab] = useState("1");
@@ -320,32 +313,8 @@ const SettingsHub = () => {
               </CardHeader>
               <CardBody>
                 <TabContent activeTab={activeTab}>
-                  <TabPane tabId="1">
-                    <CompanySettings />
-                  </TabPane>
-                  <TabPane tabId="2">
-                    <CompanyStructureSettings />
-                  </TabPane>
                   <TabPane tabId="3">
                     <UserManagement/>
-                  </TabPane>
-                  <TabPane tabId="4">
-                    <StatutoryConfig />
-                  </TabPane>
-                  <TabPane tabId="5">
-                    <PayrollMaster />
-                  </TabPane>
-                  <TabPane tabId="6">
-                    <TaxBandSettings />
-                  </TabPane>
-                  <TabPane tabId="7">
-                    <LeaveLoanRules />
-                  </TabPane>
-                  <TabPane tabId="8">
-                    <LoanTypeSettings />
-                  </TabPane>
-                  <TabPane tabId="9">
-                    <HolidaySettings />
                   </TabPane>
                 </TabContent>
               </CardBody>

@@ -4,18 +4,15 @@ import ParticlesAuth from "../AuthenticationInner/ParticlesAuth";
 import { Link } from "react-router-dom";
 import withRouter from "../../Components/Common/withRouter";
 
-// Formik validation
 import * as Yup from "yup";
 import { useFormik } from "formik";
 
-// ✅ React Query Login Hook
 import { useLogin } from "../../Components/Hooks/useAuth";
 
 import logoLight from "../../assets/images/logo-light.png";
 
 const Login = (props: any) => {
 
-    // ✅ React Query mutation
     const loginMutation = useLogin();
 
     const [passwordShow, setPasswordShow] = useState<boolean>(false);

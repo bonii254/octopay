@@ -1,21 +1,10 @@
 import React from "react";
-import { useParams } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 
 //user registration
-import OnboardingWizard from "../pages/employees/OnboardingWizard";
-import EmployeeList from "../pages/emplooyeesList/EmployeeList"
-import LeaveBalanceLedger from "../pages/leave/leavebalances/leaveBalanceList";
-import HRLeaveApplication from "../pages/leave/leaveApplication/HRLeaveApplication"
-import HRLeaveManagementList from "../pages/leave/leaveApplication/Reviewhub"
-import HRLeaveHistoryLedger from "../pages/leave/leaveApplication/leaveHistory/HRLeaveHistoryLedger";
-import LoanDashboard from "../pages/Loans/index";
-import HRLoanApplication from "../pages/Loans/loanApplication/HRLoanApplication"
-import HRLoanManagementList from "../pages/Loans/loanApproave/loanApproave"
-import EmployeeComponentAssignment from "../pages/recurringComponents/EmployeeComponentAssignment";
-import MatrixAssignmentTable from "../pages/recurringComponents/MatrixAssignmentTable";
+import SettingsHub from "../pages/settings/index";
 
-//Dashboard
+
 import DashboardAnalytics from "../pages/DashboardAnalytics";
 import DashboardCrm from "../pages/DashboardCrm";
 import DashboardEcommerce from "../pages/DashboardEcommerce";
@@ -97,8 +86,7 @@ import FeatherIcons from "../pages/Icons/FeatherIcons/FeatherIcons";
 import LineAwesomeIcons from "../pages/Icons/LineAwesomeIcons/LineAwesomeIcons";
 import CryptoIcons from "../pages/Icons/CryptoIcons/CryptoIcons";
 
-//Maps
-import GoogleMaps from "../pages/Maps/GoogleMaps/GoogleMaps";
+
 
 //AuthenticationInner pages
 import BasicSignIn from "../pages/AuthenticationInner/Login/BasicSignIn";
@@ -146,14 +134,6 @@ import Login from "../pages/Authentication/Login";
 import ForgetPasswordPage from "../pages/Authentication/ForgetPassword";
 import Logout from "../pages/Authentication/Logout";
 import Register from "../pages/Authentication/Register";
-
-//settings
-import SettingsHub from "../pages/Settings/index";
-import CompanyProfile from "../pages/Settings/components/company/CompanyProfile";
-import OrgStructure from "../pages/Settings/components/department/OrgStructure";
-import StatutoryConfig from "../pages/Settings/components/StatutoryConfig";
-import PayrollMaster from "../pages/Settings/components/PayrollMaster";
-import LeaveLoanRules from "../pages/Settings/components/LeaveLoanRules";
 
 //Charts
 import LineCharts from "../pages/Charts/ApexCharts/LineCharts";
@@ -207,29 +187,14 @@ const authProtectedRoutes = [
   { path: "/dashboard-job", component: <DashboardJob /> },
   { path: "/dashboard-blog", component: <DashboardBlog /> },
 
+
+  { path: "/settings", component: <SettingsHub /> },
+
   { path: "/apps-calendar", component: <Calendar /> },
   { path: "/apps-calendar-month-grid", component: <MonthGrid /> },
 
   { path: "/apps-file-manager", component: <FileManager /> },
 
-  //settings
-  { path: "/employeelist", component: <EmployeeList />},
-  { path: "/employee", component: <OnboardingWizard />},
-  { path: "/employee/:id", component: <OnboardingWizard /> },
-  { path: "/leavebalance", component: <LeaveBalanceLedger />},
-  { path: "/leave-requisition", component: <HRLeaveApplication />},
-  { path: "/leave-approve", component: <HRLeaveManagementList/>},
-  { path: "/list-leave-applications", component: <HRLeaveHistoryLedger /> },
-  { path: "/loan-requisition", component: <HRLoanApplication />},
-  { path: "/loan-approve", component: <HRLoanManagementList/>},
-  { path: "/recurring-components", component: <EmployeeComponentAssignment /> },
-  { path: "/list-recurring-components", component: <MatrixAssignmentTable /> },
-  { path: "/settings", component: <SettingsHub /> },
-  { path: "/settings/company-profile", component: <CompanyProfile /> },
-  { path: "/settings/org-structure", component: <OrgStructure /> },
-  { path: "/settings/statutory-config", component: <StatutoryConfig /> },
-  { path: "/settings/payroll-master", component: <PayrollMaster /> },
-  { path: "/settings/leave-loan-rules", component: <LeaveLoanRules /> },
 
   //Chat
   { path: "/apps-chat", component: <Chat /> },
@@ -329,10 +294,7 @@ const authProtectedRoutes = [
   { path: "/icons-lineawesome", component: <LineAwesomeIcons /> },
   { path: "/icons-crypto", component: <CryptoIcons /> },
 
-  //Maps
-  { path: "/maps-google", component: <GoogleMaps /> },
-
-  //Pages
+  
   { path: "/pages-starter", component: <Starter /> },
   { path: "/pages-profile", component: <SimplePage /> },
   { path: "/pages-profile-settings", component: <Settings /> },

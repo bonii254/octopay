@@ -100,7 +100,23 @@ const UserManagement = () => {
       
       <div className="d-flex justify-content-between mb-3">
         <h5>System Users</h5>
-        <Button color="primary" onClick={() => { setIsEditMode(false); formik.resetForm(); setModalOpen(true); }}>
+        <Button 
+          color="primary" 
+          onClick={() => { 
+            setIsEditMode(false); 
+            setCurrentUserId(null);
+            formik.resetForm({ 
+              values: { 
+                username: '', 
+                email: '', 
+                password: '', 
+                confirm_password: '', 
+                role: UserRole.EMPLOYEE 
+              } 
+            }); 
+            setModalOpen(true); 
+          }}
+        >
           Add User
         </Button>
       </div>
@@ -191,11 +207,10 @@ const UserManagement = () => {
             <FormGroup>
               <Label>Role</Label>
               <Input type="select" {...formik.getFieldProps('role')}>
-                <option value="EMPLOYEE">Employee</option>
-                <option value="MANAGER">Manager</option>
-                <option value="ADMIN">Admin</option>
-                <option value="ACCOUNT">ACCOUNT</option>
-                <option value="HR">HR</option>
+                <option value="ATTENDANT">Attendant</option>
+                <option value="SUPERVISOR">Supervisor</option>
+                <option value="QAE">QAE</option>
+                <option value="SUPERADMIN">Super Admin</option>
               </Input>
             </FormGroup>
           </ModalBody>

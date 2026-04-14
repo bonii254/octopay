@@ -1,9 +1,9 @@
 export enum UserRole {
-  ADMIN = "ADMIN",
-  MANAGER = "MANAGER",
+  ATTENDANT = "ATTENDANT",
   EMPLOYEE = "EMPLOYEE",
-  ACCOUNT = "ACCOUNT",
-  HR = "HR"
+  SUPERVISOR = "SUPERVISOR",
+  QAE = "QAE",
+  SUPERADMIN = "SUPERADMIN"
 }
 
 export interface User {
