@@ -19,7 +19,9 @@ export interface User {
 export interface UserPayload {
   username: string;
   email: string;
+  payroll_number: string;
   password?: string;
+  confirm_password?: string;
   role: UserRole;
 }
 

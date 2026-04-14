@@ -17,8 +17,8 @@ import {
 import classnames from "classnames";
 import { Link } from "react-router-dom";
 
-
-import UserManagement from "./users"
+import UserManagement from "./users";
+import CoolerManagement from "./cooler";
 
 const SettingsHub = () => {
   const [activeTab, setActiveTab] = useState("1");
@@ -26,23 +26,11 @@ const SettingsHub = () => {
   const getActiveTitle = () => {
     switch (activeTab) {
       case "1":
-        return "Company Profile";
-      case "2":
-        return "Organizational Structure";
-      case "3":
         return "User Roles & Permissions";
-      case "4":
-        return "Statutory Configuration";
-      case "5":
-        return "Payroll Components";
-      case "6":
-        return "Tax Bands";
-      case "7":
-        return "Leave & Loan Rules";
-      case "8":
-        return "Loan Types"
-      case "9":
-        return "Public Holidays"
+      case "2":
+        return "Cooler Center Management";
+      case "3":
+        return "Company Profile";
       default:
         return "Settings";
     }
@@ -53,276 +41,138 @@ const SettingsHub = () => {
   };
 
   return (
-    <div className="page-content">
-      <Container fluid>
-        <Row>
-          <Col xs={12}>
-            <div className="page-title-box d-sm-flex align-items-center justify-content-between">
-              <h4 className="mb-sm-0">System Configuration</h4>
-              <div className="page-title-right">
-                <Breadcrumb listClassName="m-0">
-                  <BreadcrumbItem>
-                    <Link to="/dashboard">Dashboard</Link>
-                  </BreadcrumbItem>
-                  <BreadcrumbItem active>Settings</BreadcrumbItem>
-                </Breadcrumb>
-              </div>
-            </div>
-          </Col>
-        </Row>
-
-        <Row>
-          <Col lg={3}>
-            <Card>
-              <CardHeader>
-                <h5 className="card-title mb-0">Settings Menu</h5>
-              </CardHeader>
-              <CardBody>
-                <Nav pills vertical className="nav-pills-custom">
-                  <div className="p-2 text-muted text-uppercase fw-bold fs-12 mb-1">
-                    Organization
-                  </div>
-
-                  <NavItem className="mb-2">
-                    <NavLink
-                      style={{ cursor: "pointer" }}
-                      className={classnames({
-                        "active bg-light text-primary": activeTab === "1",
-                        "text-body": activeTab !== "1",
-                      })}
-                      onClick={() => toggleTab("1")}
-                    >
-                      <div className="d-flex align-items-center">
-                        <div className="flex-shrink-0">
-                          <i className="ri-building-line fs-18 me-3"></i>
-                        </div>
-                        <div className="flex-grow-1">
-                          <h5 className="mb-0 fs-14">Company Profile</h5>
-                          <p className="mb-0 fs-12 text-muted">
-                            Logo, Address, Contact Info
-                          </p>
-                        </div>
-                      </div>
-                    </NavLink>
-                  </NavItem>
-
-                  <NavItem className="mb-2">
-                    <NavLink
-                      style={{ cursor: "pointer" }}
-                      className={classnames({
-                        "active bg-light text-primary": activeTab === "2",
-                        "text-body": activeTab !== "2",
-                      })}
-                      onClick={() => toggleTab("2")}
-                    >
-                      <div className="d-flex align-items-center">
-                        <div className="flex-shrink-0">
-                          <i className="ri-node-tree fs-18 me-3"></i>
-                        </div>
-                        <div className="flex-grow-1">
-                          <h5 className="mb-0 fs-14">Structure</h5>
-                          <p className="mb-0 fs-12 text-muted">
-                            Departments & Designations
-                          </p>
-                        </div>
-                      </div>
-                    </NavLink>
-                  </NavItem>
-
-                  <NavItem className="mb-3">
-                    <NavLink
-                      style={{ cursor: "pointer" }}
-                      className={classnames({
-                        "active bg-light text-primary": activeTab === "3",
-                        "text-body": activeTab !== "3",
-                      })}
-                      onClick={() => toggleTab("3")}
-                    >
-                      <div className="d-flex align-items-center">
-                        <div className="flex-shrink-0">
-                          <i className="ri-shield-user-line fs-18 me-3"></i>
-                        </div>
-                        <div className="flex-grow-1">
-                          <h5 className="mb-0 fs-14">User Roles</h5>
-                          <p className="mb-0 fs-12 text-muted">
-                            Access Control & Admins
-                          </p>
-                        </div>
-                      </div>
-                    </NavLink>
-                  </NavItem>
-
-                  <div className="p-2 text-muted text-uppercase fw-bold fs-12 mb-1 border-top">
-                    Payroll & Finance
-                  </div>
-
-                  <NavItem className="mb-2 mt-2">
-                    <NavLink
-                      style={{ cursor: "pointer" }}
-                      className={classnames({
-                        "active bg-light text-primary": activeTab === "4",
-                        "text-body": activeTab !== "4",
-                      })}
-                      onClick={() => toggleTab("4")}
-                    >
-                      <div className="d-flex align-items-center">
-                        <div className="flex-shrink-0">
-                          <i className="ri-government-line fs-18 me-3"></i>
-                        </div>
-                        <div className="flex-grow-1">
-                          <h5 className="mb-0 fs-14">Statutory</h5>
-                          <p className="mb-0 fs-12 text-muted">
-                            KRA, NSSF, NHIF Rates and taxes
-                          </p>
-                        </div>
-                      </div>
-                    </NavLink>
-                  </NavItem>
-
-                  <NavItem className="mb-3">
-                    <NavLink
-                      style={{ cursor: "pointer" }}
-                      className={classnames({
-                        "active bg-light text-primary": activeTab === "5",
-                        "text-body": activeTab !== "5",
-                      })}
-                      onClick={() => toggleTab("5")}
-                    >
-                      <div className="d-flex align-items-center">
-                        <div className="flex-shrink-0">
-                          <i className="ri-money-dollar-box-line fs-18 me-3"></i>
-                        </div>
-                        <div className="flex-grow-1">
-                          <h5 className="mb-0 fs-14">Pay Components</h5>
-                          <p className="mb-0 fs-12 text-muted">
-                            Earnings, Deductions
-                          </p>
-                        </div>
-                      </div>
-                    </NavLink>
-                  </NavItem>
-
-                  <NavItem className="mb-3">
-                    <NavLink
-                      style={{ cursor: "pointer" }}
-                      className={classnames({
-                        "active bg-light text-primary": activeTab === "6",
-                        "text-body": activeTab !== "6",
-                      })}
-                      onClick={() => toggleTab("6")}
-                    >
-                      <div className="d-flex align-items-center">
-                        <div className="flex-shrink-0">
-                          <i className="ri-percent-line fs-18 me-3"></i>
-                        </div>
-                        <div className="flex-grow-1">
-                          <h5 className="mb-0 fs-14">Income Tax (PAYE)</h5>
-                          <p className="mb-0 fs-12 text-muted">
-                            Progressive tax brackets & bands
-                          </p>
-                        </div>
-                      </div>
-                    </NavLink>
-                  </NavItem>
-
-                  <div className="p-2 text-muted text-uppercase fw-bold fs-12 mb-1 border-top">
-                    HR Rules
-                  </div>
-
-                  <NavItem className="mb-2 mt-2">
-                    <NavLink
-                      style={{ cursor: "pointer" }}
-                      className={classnames({
-                        "active bg-light text-primary": activeTab === "7",
-                        "text-body": activeTab !== "7",
-                      })}
-                      onClick={() => toggleTab("7")}
-                    >
-                      <div className="d-flex align-items-center">
-                        <div className="flex-shrink-0">
-                          <i className="ri-calendar-check-line fs-18 me-3"></i>
-                        </div>
-                        <div className="flex-grow-1">
-                          <h5 className="mb-0 fs-14">Leave</h5>
-                          <p className="mb-0 fs-12 text-muted">
-                            Policies & Entitlements
-                          </p>
-                        </div>
-                      </div>
-                    </NavLink>
-                  </NavItem>
-
-                  <NavItem className="mb-2 mt-2">
-                    <NavLink
-                      style={{ cursor: "pointer" }}
-                      className={classnames({
-                        "active bg-light text-primary": activeTab === "8", 
-                        "text-body": activeTab !== "8",
-                      })}
-                      onClick={() => toggleTab("8")}
-                    >
-                      <div className="d-flex align-items-center">
-                        <div className="flex-shrink-0">
-                          <i className="ri-money-dollar-circle-line fs-18 me-3"></i>
-                        </div>
-                        <div className="flex-grow-1">
-                          <h5 className="mb-0 fs-14">Loan Types</h5>
-                          <p className="mb-0 fs-12 text-muted">
-                            Interest, Tenure & Limits
-                          </p>
-                        </div>
-                      </div>
-                    </NavLink>
-                  </NavItem>
-
-                  <NavItem className="mb-2">
-                    <NavLink
-                      style={{ cursor: "pointer" }}
-                      className={classnames({
-                        "active bg-light text-primary": activeTab === "9",
-                        "text-body": activeTab !== "9",
-                      })}
-                      onClick={() => toggleTab("9")}
-                    >
-                      <div className="d-flex align-items-center">
-                        <div className="flex-shrink-0">
-                          <i className="ri-flag-line fs-18 me-3"></i>
-                        </div>
-                        <div className="flex-grow-1">
-                          <h5 className="mb-0 fs-14">Public Holidays</h5>
-                          <p className="mb-0 fs-12 text-muted">
-                            Statutory & Observed Dates
-                          </p>
-                        </div>
-                      </div>
-                    </NavLink>
-                  </NavItem>
-                </Nav>
-              </CardBody>
-            </Card>
-          </Col>
-
-          <Col lg={9}>
-            <Card>
-              <CardHeader className="align-items-center d-flex">
-                <h4 className="card-title mb-0 flex-grow-1">
-                  {getActiveTitle()}
-                </h4>
-                <div className="flex-shrink-0">
+    <React.Fragment>
+      <div className="page-content">
+        <Container fluid>
+          <Row>
+            <Col xs={12}>
+              <div className="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 className="mb-sm-0">System Configuration</h4>
+                <div className="page-title-right">
+                  <Breadcrumb listClassName="m-0">
+                    <BreadcrumbItem>
+                      <Link to="/dashboard">Dashboard</Link>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem active>Settings</BreadcrumbItem>
+                  </Breadcrumb>
                 </div>
-              </CardHeader>
-              <CardBody>
-                <TabContent activeTab={activeTab}>
-                  <TabPane tabId="3">
-                    <UserManagement/>
-                  </TabPane>
-                </TabContent>
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
-    </div>
+              </div>
+            </Col>
+          </Row>
+
+          <Row>
+            <Col lg={3}>
+              <Card>
+                <CardHeader>
+                  <h5 className="card-title mb-0">Settings Menu</h5>
+                </CardHeader>
+                <CardBody>
+                  <Nav pills vertical className="nav-pills-custom">
+                    <div className="p-2 text-muted text-uppercase fw-bold fs-11 mb-2">
+                      Governance & Assets
+                    </div>
+
+                    <NavItem className="mb-2">
+                      <NavLink
+                        style={{ cursor: "pointer" }}
+                        className={classnames({
+                          "active bg-primary-subtle": activeTab === "1",
+                        })}
+                        onClick={() => toggleTab("1")}
+                      >
+                        <div className="d-flex align-items-center">
+                          <div className="flex-shrink-0">
+                            <i className={classnames("ri-shield-user-line fs-18 me-3", { "text-primary": activeTab === "1" })}></i>
+                          </div>
+                          <div className="flex-grow-1">
+                            <h5 className="mb-0 fs-13">User Roles</h5>
+                            <p className="mb-0 fs-12 text-muted">Access & Permissions</p>
+                          </div>
+                        </div>
+                      </NavLink>
+                    </NavItem>
+
+                    <NavItem className="mb-2">
+                      <NavLink
+                        style={{ cursor: "pointer" }}
+                        className={classnames({
+                          "active bg-primary-subtle": activeTab === "2",
+                        })}
+                        onClick={() => toggleTab("2")}
+                      >
+                        <div className="d-flex align-items-center">
+                          <div className="flex-shrink-0">
+                            <i className={classnames("ri-fridge-line fs-18 me-3", { "text-primary": activeTab === "2" })}></i>
+                          </div>
+                          <div className="flex-grow-1">
+                            <h5 className="mb-0 fs-13">Cooler Centers</h5>
+                            <p className="mb-0 fs-12 text-muted">Asset Configuration</p>
+                          </div>
+                        </div>
+                      </NavLink>
+                    </NavItem>
+
+                    <div className="p-2 text-muted text-uppercase fw-bold fs-11 mt-3 mb-2">
+                      Organization
+                    </div>
+
+                    <NavItem>
+                      <NavLink
+                        style={{ cursor: "pointer" }}
+                        className={classnames({
+                          "active bg-primary-subtle": activeTab === "3",
+                        })}
+                        onClick={() => toggleTab("3")}
+                      >
+                        <div className="d-flex align-items-center">
+                          <div className="flex-shrink-0">
+                            <i className={classnames("ri-settings-4-line fs-18 me-3", { "text-primary": activeTab === "3" })}></i>
+                          </div>
+                          <div className="flex-grow-1">
+                            <h5 className="mb-0 fs-13">Company Profile</h5>
+                            <p className="mb-0 fs-12 text-muted">Global Identity</p>
+                          </div>
+                        </div>
+                      </NavLink>
+                    </NavItem>
+                  </Nav>
+                </CardBody>
+              </Card>
+            </Col>
+
+            {/* Content Area */}
+            <Col lg={9}>
+              <Card>
+                <CardHeader className="align-items-center d-flex border-bottom-dashed">
+                  <h4 className="card-title mb-0 flex-grow-1">
+                    {getActiveTitle()}
+                  </h4>
+                </CardHeader>
+                <CardBody className="p-4">
+                  <TabContent activeTab={activeTab}>
+                    <TabPane tabId="1">
+                      <UserManagement />
+                    </TabPane>
+                    
+                    <TabPane tabId="2">
+                      <CoolerManagement />
+                    </TabPane>
+
+                    <TabPane tabId="3">
+                      <div className="text-center p-5">
+                         <i className="ri-building-line display-4 text-muted"></i>
+                         <h5 className="mt-3">Company Profile Settings</h5>
+                         <p className="text-muted">Configuration for company global variables is coming soon.</p>
+                      </div>
+                    </TabPane>
+                  </TabContent>
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+      </div>
+    </React.Fragment>
   );
 };
 

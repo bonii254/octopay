@@ -7,21 +7,17 @@ import { Link } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useUsers, useUserMutation } from '../../../Components/Hooks/useUsers';
-import { User, UserRole, UserPayload, UpdateUserRequest } from '../../../types/user';
+import { UserRole, UserPayload, UpdateUserRequest } from '../../../types/user';
 import { handleBackendErrors } from '../../../helpers/form_utils';
 import TablePagination from "../../TablePagination"; 
 
-interface FormValues extends UserPayload {
-  confirm_password?: string;
-  payroll_number?: string;
-}
+
 
 const UserManagement = () => {
   // 1. Frontend Pagination State
-  const [pageIndex, setPageIndex] = useState(0); // 0-based for compatibility with TablePagination
+  const [pageIndex, setPageIndex] = useState(0); 
   const [pageSize, setPageSize] = useState(10);
 
-  // Fetch all users (passing high limit or no page to get the full list for frontend paging)
   const { data, isLoading } = useUsers(1, 100); 
   const { createUser, updateUser, deleteUser, isCreating, isUpdating, isDeleting } = useUserMutation();
 
@@ -39,7 +35,6 @@ const UserManagement = () => {
   const allUsers = useMemo(() => data?.users || [], [data]);
   const selectedUser = allUsers.find(u => u.id === currentUserId);
 
-  // 2. Frontend Slicing Logic
   const paginatedRows = useMemo(() => {
     const start = pageIndex * pageSize;
     return allUsers.slice(start, start + pageSize);
@@ -47,7 +42,6 @@ const UserManagement = () => {
 
   const totalPages = Math.ceil(allUsers.length / pageSize);
 
-  // 3. Mock Table Instance for the TablePagination component
   const tableInstance = {
     getState: () => ({ pagination: { pageIndex, pageSize } }),
     setPageSize: (size: number) => {
@@ -63,7 +57,7 @@ const UserManagement = () => {
     getPrePaginationRowModel: () => ({ rows: allUsers }),
   };
 
-  const formik = useFormik<FormValues>({
+  const formik = useFormik<UserPayload>({
     initialValues: { 
       username: '',
       email: '', 
