@@ -1,9 +1,11 @@
-/*
-Template Name: Velzon - Admin & Dashboard Template
-Author: Themesbrand
-Website: https://themesbrand.com/
-Contact: support@themesbrand.com
-File: Custom Css File
-*/
+/* Custom Scrollable Dropdown for Select Inputs */
+.scrollable-select {
+    max-height: 250px !important; 
+    overflow-y: auto !important;
+}
 
-
+/* This ensures the select looks consistent in Velzon modals */
+select[size].form-control.scrollable-select {
+    height: auto !important;
+    padding: 0.5rem;
+}

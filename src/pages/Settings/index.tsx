@@ -19,6 +19,7 @@ import { Link } from "react-router-dom";
 
 import UserManagement from "./users";
 import CoolerManagement from "./cooler";
+import AssignmentManagement from "./assignment";
 
 const SettingsHub = () => {
   const [activeTab, setActiveTab] = useState("1");
@@ -30,7 +31,7 @@ const SettingsHub = () => {
       case "2":
         return "Cooler Center Management";
       case "3":
-        return "Company Profile";
+        return "Staff Deployments";
       default:
         return "Settings";
     }
@@ -69,7 +70,7 @@ const SettingsHub = () => {
                 <CardBody>
                   <Nav pills vertical className="nav-pills-custom">
                     <div className="p-2 text-muted text-uppercase fw-bold fs-11 mb-2">
-                      Governance & Assets
+                      Users, Coolers and Assignments
                     </div>
 
                     <NavItem className="mb-2">
@@ -111,36 +112,32 @@ const SettingsHub = () => {
                         </div>
                       </NavLink>
                     </NavItem>
-
-                    <div className="p-2 text-muted text-uppercase fw-bold fs-11 mt-3 mb-2">
-                      Organization
-                    </div>
-
-                    <NavItem>
-                      <NavLink
+                    <NavItem className="mb-2">
+                      <NavLink 
                         style={{ cursor: "pointer" }}
-                        className={classnames({
-                          "active bg-primary-subtle": activeTab === "3",
+                        className={classnames({ 
+                          "active bg-primary-subtle": activeTab === "3" 
                         })}
                         onClick={() => toggleTab("3")}
                       >
                         <div className="d-flex align-items-center">
                           <div className="flex-shrink-0">
-                            <i className={classnames("ri-settings-4-line fs-18 me-3", { "text-primary": activeTab === "3" })}></i>
+                            <i className={classnames("ri-user-location-line fs-18 me-3", { "text-primary": activeTab === "3" })}></i>
                           </div>
                           <div className="flex-grow-1">
-                            <h5 className="mb-0 fs-13">Company Profile</h5>
-                            <p className="mb-0 fs-12 text-muted">Global Identity</p>
+                            <h5 className="mb-0 fs-13">Deployments</h5>
+                            <p className="mb-0 fs-12 text-muted">Assign Attendants</p>
                           </div>
                         </div>
                       </NavLink>
                     </NavItem>
+
+        
                   </Nav>
                 </CardBody>
               </Card>
             </Col>
 
-            {/* Content Area */}
             <Col lg={9}>
               <Card>
                 <CardHeader className="align-items-center d-flex border-bottom-dashed">
@@ -159,12 +156,9 @@ const SettingsHub = () => {
                     </TabPane>
 
                     <TabPane tabId="3">
-                      <div className="text-center p-5">
-                         <i className="ri-building-line display-4 text-muted"></i>
-                         <h5 className="mt-3">Company Profile Settings</h5>
-                         <p className="text-muted">Configuration for company global variables is coming soon.</p>
-                      </div>
+                      <AssignmentManagement />
                     </TabPane>
+
                   </TabContent>
                 </CardBody>
               </Card>

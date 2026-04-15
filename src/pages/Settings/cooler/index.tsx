@@ -11,18 +11,15 @@ import { useCoolers, useCoolerMutation } from '../../../Components/Hooks/useCool
 import { Cooler, CoolerPayload, UpdateCoolerRequest } from '../../../types/cooler';
 import { handleBackendErrors } from '../../../helpers/form_utils';
 import TablePagination from "../../TablePagination"; 
-import { rankItem } from '@tanstack/match-sorter-utils';
 
 const CoolerManagement = () => {
-  // 1. Frontend Pagination State
   const [pageIndex, setPageIndex] = useState(0); 
   const [pageSize, setPageSize] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Data Fetching
   const { data, isLoading } = useCoolers(); 
   const { createCooler, updateCooler, deleteCooler, isCreating, isUpdating, isDeleting } = useCoolerMutation();
 
-  // Modal & UI State
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -30,18 +27,22 @@ const CoolerManagement = () => {
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
 
-  // Memoized Data Logic
-  const allCoolers = useMemo(() => data?.coolers || [], [data]);
-  const selectedCooler = allCoolers.find(c => c.id === currentCoolerId);
+  const filteredCoolers = useMemo(() => {
+    const list = data?.coolers || [];
+    if (!searchTerm) return list;
+    return list.filter(c => 
+      c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (c.route && c.route.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }, [data, searchTerm]);
 
   const paginatedRows = useMemo(() => {
     const start = pageIndex * pageSize;
-    return allCoolers.slice(start, start + pageSize);
-  }, [allCoolers, pageIndex, pageSize]);
+    return filteredCoolers.slice(start, start + pageSize);
+  }, [filteredCoolers, pageIndex, pageSize]);
 
-  const totalPages = Math.ceil(allCoolers.length / pageSize);
+  const totalPages = Math.ceil(filteredCoolers.length / pageSize);
 
-  // Pagination Instance
   const tableInstance = {
     getState: () => ({ pagination: { pageIndex, pageSize } }),
     setPageSize: (size: number) => {
@@ -54,10 +55,9 @@ const CoolerManagement = () => {
     getCanNextPage: () => pageIndex < totalPages - 1,
     getPageCount: () => totalPages || 1,
     getRowModel: () => ({ rows: paginatedRows }),
-    getPrePaginationRowModel: () => ({ rows: allCoolers }),
+    getPrePaginationRowModel: () => ({ rows: filteredCoolers }),
   };
 
-  // Form Logic
   const formik = useFormik<CoolerPayload>({
     initialValues: { 
       name: '',
@@ -77,16 +77,11 @@ const CoolerManagement = () => {
         setGlobalError(null);
         if (isEditMode && currentCoolerId) {
           const patchedData: UpdateCoolerRequest = {};
-          let hasChanges = false;
-          
           (Object.keys(values) as Array<keyof CoolerPayload>).forEach(key => {
             if (values[key] !== formik.initialValues[key]) {
               (patchedData as any)[key] = values[key];
-              hasChanges = true;
             }
           });
-
-          if (!hasChanges) return setModalOpen(false);
           await updateCooler({ id: currentCoolerId, data: patchedData });
         } else {
           await createCooler(values);
@@ -128,26 +123,23 @@ const CoolerManagement = () => {
       {globalError && <Alert color="danger" className="mb-3">{globalError}</Alert>}
       
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="mb-0">Coolers Listing</h5>
+        <div className="search-box">
+            <Input 
+                type="text" 
+                className="form-control" 
+                placeholder="Search cooler or route..." 
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); setPageIndex(0); }}
+                style={{ width: '250px' }}
+            />
+        </div>
         <Button 
           color="primary" 
           onClick={() => { 
             setIsEditMode(false); 
             setCurrentCoolerId(null);
             setGlobalError(null);
-            
-            formik.resetForm({
-              values: {
-                name: '',
-                route: '',
-                fuel_capacity_liters: 0,
-                expected_consumption_rate: 0,
-                is_active: true
-              },
-              errors: {},
-              touched: {}
-            }); 
-            
+            formik.resetForm(); 
             setModalOpen(true); 
           }}
         >
@@ -168,23 +160,21 @@ const CoolerManagement = () => {
         <tbody>
           {isLoading ? (
             <tr><td colSpan={5} className="text-center p-5"><Spinner color="primary" /></td></tr>
-          ) : (
+          ) : paginatedRows.length > 0 ? (
             paginatedRows.map((cooler: Cooler) => (
               <tr key={cooler.id}>
                 <td>
                   <div className="d-flex align-items-center">
-                    <div className="flex-shrink-0">
-                      <div className="avatar-xs">
+                    <div className="avatar-xs flex-shrink-0">
                         <div className="avatar-title rounded-circle bg-info-subtle text-info fw-bold">
                           <i className="ri-fridge-line"></i>
                         </div>
-                      </div>
                     </div>
                     <div className="ms-2">
                       <h5 className="fs-14 mb-0">
                         <Link to={`/coolers/view/${cooler.id}`} className="text-body fw-bold">{cooler.name}</Link>
                       </h5>
-                      <p className="text-muted mb-0 fs-12 text-uppercase fw-medium">
+                      <p className="text-muted mb-0 fs-11 text-uppercase">
                         <i className="ri-map-pin-2-line text-primary me-1"></i>
                         {cooler.route || 'No Route'}
                       </p>
@@ -198,7 +188,7 @@ const CoolerManagement = () => {
                      {cooler.is_active ? 'Active' : 'Deactivated'}
                    </span>
                 </td>
-                <td>
+                <td className="text-end">
                   <div className="d-flex gap-2 justify-content-end">
                     <Button size="sm" color="soft-info" onClick={() => handleEdit(cooler)}>
                         <i className="ri-edit-box-line"></i>
@@ -212,6 +202,8 @@ const CoolerManagement = () => {
                 </td>
               </tr>
             ))
+          ) : (
+            <tr><td colSpan={5} className="text-center p-4">No coolers found matching your search.</td></tr>
           )}
         </tbody>
       </Table>
@@ -220,7 +212,7 @@ const CoolerManagement = () => {
 
       {/* Form Modal */}
       <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)} centered size="lg">
-        <ModalHeader className="bg-light p-3 border-bottom-dashed">
+        <ModalHeader className="bg-light p-3 border-bottom-dashed" toggle={() => setModalOpen(false)}>
             {isEditMode ? 'Update Cooler Asset' : 'Register New Cooler'}
         </ModalHeader>
         <Form onSubmit={formik.handleSubmit}>
@@ -279,10 +271,9 @@ const CoolerManagement = () => {
 
             {isEditMode && (
                 <FormGroup check className="mt-3">
-                    <Label check className="text-muted fw-normal">
+                    <Label check>
                         <Input 
                             type="checkbox" 
-                            className="form-check-input"
                             checked={formik.values.is_active}
                             onChange={(e) => formik.setFieldValue('is_active', e.target.checked)}
                         />{' '}
@@ -292,8 +283,8 @@ const CoolerManagement = () => {
             )}
           </ModalBody>
           <ModalFooter className="bg-light p-3">
-            <Button color="link" className="link-danger text-decoration-none" onClick={() => setModalOpen(false)}>Cancel</Button>
-            <Button type="submit" color="primary" disabled={isCreating || isUpdating} className="px-4">
+            <Button color="link" onClick={() => setModalOpen(false)}>Cancel</Button>
+            <Button type="submit" color="primary" disabled={isCreating || isUpdating}>
               {isCreating || isUpdating ? <Spinner size="sm" /> : (isEditMode ? 'Update Asset' : 'Save Asset')}
             </Button>
           </ModalFooter>
@@ -306,22 +297,15 @@ const CoolerManagement = () => {
           <i className="ri-error-warning-line display-4 text-warning"></i>
           <div className="mt-4">
               <h4 className="mb-2">Remove Cooler Asset?</h4>
-              <p className="text-muted fs-14">
-                If logs exist, the system will <strong>Deactivate</strong> the cooler. 
-                Otherwise, it will be permanently deleted.
-              </p>
-              <div className="bg-light p-3 rounded mb-3">
-                <p className="text-muted mb-1 fs-12 text-uppercase">Type confirmation below</p>
-                <h6 className="mb-0 fw-bold">DELETE</h6>
-              </div>
+              <p className="text-muted fs-14">Type <strong>DELETE</strong> to confirm removal.</p>
               <Input 
                  type="text" value={deleteConfirmation} 
                  onChange={(e) => setDeleteConfirmation(e.target.value)} 
                  className="text-center mb-4" placeholder="Enter DELETE"
               />
               <div className="hstack gap-2 justify-content-center">
-                <Button color="light" className="w-md" onClick={() => setDeleteModal(false)}>Cancel</Button>
-                <Button color="danger" className="w-md" onClick={confirmDelete} disabled={isDeleting || deleteConfirmation !== 'DELETE'}>
+                <Button color="light" onClick={() => setDeleteModal(false)}>Cancel</Button>
+                <Button color="danger" onClick={confirmDelete} disabled={isDeleting || deleteConfirmation !== 'DELETE'}>
                   {isDeleting ? <Spinner size="sm" /> : 'Confirm Removal'}
                 </Button>
               </div>
