@@ -2,6 +2,7 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 
 //user registration
+import BriquetteDashboard from "../pages/Briquette/BriquetteDashboardPage"; 
 import SettingsHub from "../pages/settings/index";
 
 
@@ -187,7 +188,7 @@ const authProtectedRoutes = [
   { path: "/dashboard-job", component: <DashboardJob /> },
   { path: "/dashboard-blog", component: <DashboardBlog /> },
 
-
+  { path: "/briquette", component: <BriquetteDashboard /> },
   { path: "/settings", component: <SettingsHub /> },
 
   { path: "/apps-calendar", component: <Calendar /> },

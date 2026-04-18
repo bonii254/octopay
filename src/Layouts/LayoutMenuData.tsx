@@ -1,3 +1,4 @@
+import { ba } from "@fullcalendar/core/internal-common";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -203,6 +204,13 @@ const Navdata = () => {
                     parentId: "dashboard",
                     badgeColor: "success",
                     badgeName: "New",
+                },
+                {
+                    id: "briquette",
+                    label: "Briquette Inventory",
+                    link: "/briquette",
+                    parentId: "dashboard",
+                    badgeColor: "success",
                 },
                 {
                     id: "settings",
