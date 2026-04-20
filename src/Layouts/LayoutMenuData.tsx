@@ -213,6 +213,13 @@ const Navdata = () => {
                     badgeColor: "success",
                 },
                 {
+                    id: "briquette-audit",
+                    label: "Briquette Audit",
+                    link: "/briquette-audit",
+                    parentId: "dashboard",
+                    badgeColor: "success",
+                },
+                {
                     id: "settings",
                     label: "Settings",
                     link: "/settings",

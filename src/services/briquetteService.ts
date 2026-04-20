@@ -29,10 +29,12 @@ export const BriquetteService = {
     return response.message;
   },
 
-  reviewLogs: async (params: Record<string, any>): Promise<{ count: number; logs: BriquetteLog[] }> => {
-    const response = await api.get(`${BASE_URL}/review`, { params });
+  reviewLogs: async (params: Record<string, any>) => {
+    const query = new URLSearchParams(params).toString();
+    const response = await api.get(`${BASE_URL}/review?${query}`); 
     return { count: response.count, logs: response.logs };
   },
+
 
   approveLog: async (logId: string, payload: QAEApprovalPayload): Promise<{ message: string; log: BriquetteLog }> => {
     const response = await api.create(`${BASE_URL}/${logId}/approval`, payload);

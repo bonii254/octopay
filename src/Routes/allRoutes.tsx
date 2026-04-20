@@ -2,7 +2,8 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 
 //user registration
-import BriquetteDashboard from "../pages/Briquette/BriquetteDashboardPage"; 
+import BriquetteDashboard from "../pages/Briquette/BriquetteDashboardPage";
+import BriquetteAuditList from "../pages/Briquette/BriquetteAuditDashboard"; 
 import SettingsHub from "../pages/settings/index";
 
 
@@ -189,6 +190,7 @@ const authProtectedRoutes = [
   { path: "/dashboard-blog", component: <DashboardBlog /> },
 
   { path: "/briquette", component: <BriquetteDashboard /> },
+  { path: "/briquette-audit", component: <BriquetteAuditList /> },
   { path: "/settings", component: <SettingsHub /> },
 
   { path: "/apps-calendar", component: <Calendar /> },
@@ -315,8 +317,6 @@ const authProtectedRoutes = [
   //User Profile
   { path: "/profile", component: <UserProfile /> },
 
-  // this route should be at the end of all other routes
-  // eslint-disable-next-line react/display-name
   {
     path: "/",
     exact: true,
