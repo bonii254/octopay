@@ -220,6 +220,20 @@ const Navdata = () => {
                     badgeColor: "success",
                 },
                 {
+                    id: "fuel",
+                    label: "Fuel Inventory",
+                    link: "/fuel",
+                    parentId: "dashboard",
+                    badgeColor: "success",
+                },
+                {
+                    id: "fuel-audit",
+                    label: "Fuel Audit",
+                    link: "/fuel-audit",
+                    parentId: "dashboard",
+                    badgeColor: "success",
+                },
+                {
                     id: "settings",
                     label: "Settings",
                     link: "/settings",

@@ -4,6 +4,8 @@ import { Navigate } from "react-router-dom";
 //user registration
 import BriquetteDashboard from "../pages/Briquette/BriquetteDashboardPage";
 import BriquetteAuditList from "../pages/Briquette/BriquetteAuditDashboard"; 
+import FuelDashboard from "../pages/Fuel/FuelDashboardPage";
+import FuelAuditList from "../pages/Fuel/AdminReview/FuelAuditDashboard";
 import SettingsHub from "../pages/settings/index";
 
 
@@ -177,6 +179,7 @@ import SlopeCharts from "pages/Charts/ApexCharts/SlopeCharts";
 import BlogListView from "pages/Pages/Blogs/ListView";
 import BlogGridView from "pages/Pages/Blogs/GridView";
 import PageBlogOverview from "pages/Pages/Blogs/Overview";
+import path from "path";
 
 const authProtectedRoutes = [
   { path: "/dashboard-analytics", component: <DashboardAnalytics /> },
@@ -191,6 +194,8 @@ const authProtectedRoutes = [
 
   { path: "/briquette", component: <BriquetteDashboard /> },
   { path: "/briquette-audit", component: <BriquetteAuditList /> },
+  { path: "/fuel", component: <FuelDashboard /> }, 
+  { path: "/fuel-audit", component: <FuelAuditList /> },
   { path: "/settings", component: <SettingsHub /> },
 
   { path: "/apps-calendar", component: <Calendar /> },
