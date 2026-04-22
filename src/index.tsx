@@ -37,7 +37,6 @@ root.render(
         </BrowserRouter>
       </React.Fragment>
     </Provider>
-    <ReactQueryDevtools initialIsOpen={false} />
   </QueryClientProvider>,
 );
 

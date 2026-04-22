@@ -1,10 +1,8 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import SimpleBar from "simplebar-react";
-//import logo
-import logoSm from "../assets/images/logo-sm.png";
-import logoDark from "../assets/images/logo-dark.png";
-import logoLight from "../assets/images/logo-light.png";
+
+import freshalogo from "../assets/images/freshalogo.png";
 
 //Import Components
 import VerticalLayout from "./VerticalLayouts";
@@ -24,7 +22,6 @@ const Sidebar = ({ layoutType } : any) => {
   });
 
   const addEventListenerOnSmHoverMenu = () => {
-    // add listener Sidebar Hover icon on change layout from setting
     if (document.documentElement.getAttribute('data-sidebar-size') === 'sm-hover') {
       document.documentElement.setAttribute('data-sidebar-size', 'sm-hover-active');
     } else if (document.documentElement.getAttribute('data-sidebar-size') === 'sm-hover-active') {
@@ -40,19 +37,19 @@ const Sidebar = ({ layoutType } : any) => {
         <div className="navbar-brand-box">
           <Link to="/" className="logo logo-dark">
             <span className="logo-sm">
-              <img src={logoSm} alt="" height="22" />
+              <img src={freshalogo} alt="" height="80" />
             </span>
             <span className="logo-lg">
-              <img src={logoDark} alt="" height="17" />
+              <img src={freshalogo} alt="" height="80" />
             </span>
           </Link>
 
           <Link to="/" className="logo logo-light">
             <span className="logo-sm">
-              <img src={logoSm} alt="" height="22" />
+              <img src={freshalogo} alt="" height="80" />
             </span>
             <span className="logo-lg">
-              <img src={logoLight} alt="" height="17" />
+              <img src={freshalogo} alt="" height="80" />
             </span>
           </Link>
           <button
