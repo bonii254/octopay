@@ -19,6 +19,11 @@ export const FuelService = {
       return response.log;
     },
 
+  getRejectedLogs: async (): Promise<FuelDailyLog[]> => {
+    const response = await api.get(`${BASE_URL}/rejected`);
+    return response.log;
+  },
+
   updateLog: async (logId: string, payload: UpdateFuelLogPayload): Promise<FuelDailyLog> => {
     return await api.update(`${BASE_URL}/${logId}`, payload);
   },

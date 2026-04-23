@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Card, CardBody, Table, Button, Badge, Input } from 'reactstrap';
-// Removed unused useReactTable, getCoreRowModel, and ColumnDef
 
 import { useFuelAdmin } from '../../../Components/Hooks/useFuelAdmin';
 import BreadCrumb from '../../../Components/Common/BreadCrumb';
@@ -9,7 +8,7 @@ import TablePagination from '../../BackendPagination';
 
 const FuelAuditList = () => {
     const [filters, setFilters] = useState({ 
-        status: 'DRAFT', 
+        status: 'SUBMITTED', 
         search: '', 
         page: 1, 
         per_page: 10 
@@ -24,6 +23,10 @@ const FuelAuditList = () => {
         setIsModalOpen(!isModalOpen);
     };
 
+    const getStationInitials = (name: string) => {
+        if (!name) return "ST";
+        return name.split(' ').map(n => n).join('').toUpperCase().substring(0, 2);
+    };
     const handlePageChange = (newPage: number) => {
         setFilters(prev => ({ ...prev, page: newPage }));
     };
@@ -78,6 +81,7 @@ const FuelAuditList = () => {
                                     <th>Station</th>
                                     <th>Date</th>
                                     <th>Opening</th>
+                                    <th>Top Up</th>
                                     <th>Consumption</th>
                                     <th>Variance</th>
                                     <th>Status</th>
@@ -95,13 +99,28 @@ const FuelAuditList = () => {
                                 ) : logs.length > 0 ? (
                                     logs.map((log: any) => (
                                         <tr key={log.id}>
-                                            <td className="fw-medium">{log.cooler_name}</td>
+                                            <td>
+                                                <div className="d-flex align-items-center">
+                                                    <div className="avatar-xs me-2">
+                                                        <div className="avatar-title rounded-circle bg-soft-info text-info fw-bold">
+                                                            {getStationInitials(log.cooler_name)}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <h5 className="fs-13 mb-0 text-dark fw-bold">{log.cooler_name}</h5>
+                                                        <p className="text-muted mb-0 fs-11">
+                                                            Attendant: {log.attendant_name || 'System'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </td>
                                             <td>{new Date(log.date).toLocaleDateString()}</td>
-                                            <td>{log.opening_stock} L</td>
-                                            <td>{log.total_consumption} L</td>
+                                            <td>{log.opening_stock_liters} L</td>
+                                            <td>{log.receipt_top_up} L</td>
+                                            <td>{log.fuel_used_liters} L</td>
                                             <td>
                                                 <span className={Math.abs(log.variance_percent) > 3 ? "text-danger fw-bold" : "text-success"}>
-                                                    {log.variance} L ({log.variance_percent}%)
+                                                    {log.variance_liters} L ({log.variance_percent}%)
                                                 </span>
                                             </td>
                                             <td>

@@ -22,6 +22,12 @@ export const useFuelAttendant = (logId?: string) => {
     staleTime: 1000 * 60 * 5, 
   });
 
+  const rejectedLogsQuery = useQuery({
+    queryKey: ["fuel", "rejected"],
+    queryFn: () => FuelService.getRejectedLogs(),
+    retry: false,
+  });
+
   const mutationOptions = {
     onMutate: () => {
       setFormErrors({});
@@ -66,6 +72,8 @@ export const useFuelAttendant = (logId?: string) => {
   return {
     log: currentLog.data || null,
     isLoading: currentLog.isLoading,
+    rejectedLogs: rejectedLogsQuery.data || [],
+    isLoadingLogs: rejectedLogsQuery.isLoading,
     isInitializing: initializeMorning.isPending,
     isUpdating: updateProgress.isPending,
     

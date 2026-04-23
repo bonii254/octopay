@@ -50,6 +50,8 @@ export interface UpdateFuelLogPayload {
   receipt_top_up?: number | string;
   receipt_serial?: string;
   closing_stock_liters?: number | string;
+  opening_hours?: number | string;
+  opening_stock_liters?: number | string;
   closing_hours?: number | string;
   fuel_return?: number | string;
   route_in_charge?: string;

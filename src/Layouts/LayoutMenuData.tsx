@@ -1,10 +1,8 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 
-import { useUser } from "../Components/Hooks/useAuth"; // adjust path
+import { useUser } from "../Components/Hooks/useAuth"; 
 
 const Navdata = () => {
-    const history = useNavigate();
     const { data: user } = useUser();
 
     const role = user?.role;

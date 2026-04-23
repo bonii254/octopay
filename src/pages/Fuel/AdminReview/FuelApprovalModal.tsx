@@ -24,25 +24,30 @@ const FuelApprovalModal = ({ isOpen, toggle, log, onProcess, isProcessing }: any
             <ModalBody>
                 <Row className="text-center mb-3">
                     <Col>
-                        <p className="text-muted mb-1">Expected</p>
-                        <h6>{log.expected_closing_stock} L</h6>
+                        <p className="text-muted mb-1">Expected Consumption Rate</p>
+                        <h6>{log.expected_consumption_rate} L/H</h6>
                     </Col>
                     <Col>
-                        <p className="text-muted mb-1">Actual</p>
-                        <h6>{log.closing_stock_actual} L</h6>
+                        <p className="text-muted mb-1">Actual Consumption Rate</p>
+                        <h6>{log.actual_consumption_rate} L/H</h6>
                     </Col>
                     <Col>
-                        <p className="text-muted mb-1">Variance</p>
-                        <h6 className={isHighVariance ? "text-danger" : "text-success"}>
-                            {log.variance} L ({log.variance_percent}%)
-                        </h6>
-                    </Col>
+                        <p className="text-muted mb-1">Closing Stock liters</p>
+                        <h6>{log.closing_stock_liters} L</h6>
+                       </Col>
                 </Row>
 
                 {isHighVariance && (
                     <Alert color="warning" className="small">
-                        High fuel variance detected. Please cross-check dip-stick readings.
+                        High fuel variance detected. Attendant need to cross-check readings.
                     </Alert>
+                )}
+
+                {log.qae_remarks && (
+                  <div className="mb-3 p-3 bg-white rounded border">
+                    <Label className="fw-bold text-primary">QAE Audit Remarks:</Label>
+                    <p className="mb-0 fst-italic text-muted">"{log.qae_remarks}"</p>
+                  </div>
                 )}
 
                 <div className="mb-3">

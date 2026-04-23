@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap';
 import { useUser } from "../../Components/Hooks/useAuth";
 
-//import images
 import avatar1 from "../../assets/images/users/avatar-1.jpg";
 
 const ProfileDropdown = () => {
@@ -24,7 +23,6 @@ const ProfileDropdown = () => {
                         <img className="rounded-circle header-profile-user" src={avatar1}
                             alt="Header Avatar" />
                         <span className="text-start ms-xl-2">
-                            {/* Display name safely */}
                             <span className="d-none d-xl-inline-block ms-1 fw-medium user-name-text">{displayName}</span>
                             <span className="d-none d-xl-block ms-1 fs-12 text-muted user-name-sub-text">Founder</span>
                         </span>

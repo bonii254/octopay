@@ -7,26 +7,67 @@ import { useUser } from '../../Components/Hooks/useAuth';
 const FuelDashboard = () => {
     const { 
         log, isLoading, isUpdating, isInitializing, formErrors, globalError, 
-        setGlobalError, startDay, saveProgress 
+        setGlobalError, startDay, saveProgress, rejectedLogs 
     } = useFuelAttendant();
     
     const { data: userData, isLoading: isUserLoading } = useUser();
+
+    const [activeLog, setActiveLog] = useState<any>(null);
     
     const displayUsername = userData?.username || "Current Attendant"; 
     const displayCooler = userData?.active_cooler_name || "Assigned Cooler";
     const displayRoute = userData?.active_cooler_route || "Assigned Route";
 
+    const [localOpeningHrs, setLocalOpeningHrs] = useState<string>("");
     const [localClosingHrs, setLocalClosingHrs] = useState<string>("");
     const [localClosingLiters, setLocalClosingLiters] = useState<string>("");
     const [localTopUp, setLocalTopUp] = useState<string>("");
+    const [localOpeningLiters, setLocalOpeningLiters] = useState<string>("");
+
+    const canEdit = activeLog?.is_editable || activeLog?.status === 'REJECTED' || activeLog?.status === 'DRAFT';
 
     useEffect(() => {
-        if (log) {
-            setLocalClosingHrs(log.closing_hours?.toString() || "");
-            setLocalClosingLiters(log.closing_stock_liters?.toString() || "");
-            setLocalTopUp(log.receipt_top_up?.toString() || "0");
+        if (log && !activeLog) {
+            setActiveLog(log);
         }
     }, [log]);
+
+    useEffect(() => {
+        if (activeLog) {
+            setLocalOpeningHrs(activeLog.opening_hours?.toString() || "");
+            setLocalClosingHrs(activeLog.closing_hours?.toString() || "");
+            setLocalClosingLiters(activeLog.closing_stock_liters?.toString() || "");
+            setLocalTopUp(activeLog.receipt_top_up?.toString() || "0");
+            setLocalOpeningLiters(activeLog.opening_stock_liters?.toString() || "0");
+        }
+    }, [activeLog?.id]);
+
+    const handleAutoSave = async (fieldData: object) => {
+        if (!activeLog?.id) return;
+        
+        try {
+            const updatedData = await saveProgress({ 
+                id: activeLog.id, 
+                data: fieldData 
+            });
+            
+            if (updatedData) {
+                setActiveLog(updatedData);
+            }
+        } catch (err) {
+            console.error("Auto-save failed", err);
+        }
+    };
+
+    const handleSelectRejected = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedId = e.target.value;
+        if (selectedId === "today") {
+            setActiveLog(log);
+        } else {
+            const found = rejectedLogs.find((r: any) => r.id.toString() === selectedId);
+            if (found) setActiveLog(found);
+        }
+    };
 
     if (isLoading || isUserLoading) {
         return (
@@ -43,6 +84,31 @@ const FuelDashboard = () => {
             <Container fluid>
                 <BreadCrumb title="Fuel Daily Log" pageTitle="Inventory" />
 
+                {rejectedLogs.length > 0 && (
+                    <Card className="border-start border-warning border-3 mb-4">
+                        <CardBody>
+                            <Row className="align-items-center">
+                                <Col md={4}>
+                                    <h6 className="text-warning mb-0">
+                                        <i className="ri-error-warning-fill me-2"></i>
+                                        Pending Corrections
+                                    </h6>
+                                </Col>
+                                <Col md={8}>
+                                    <Input type="select" onChange={handleSelectRejected} value={activeLog?.id || "today"}>
+                                        <option value="today">--- Today's Active Log ---</option>
+                                        {rejectedLogs.map((r: any) => (
+                                            <option key={r.id} value={r.id}>
+                                                Fix Log: {new Date(r.created_at).toLocaleDateString()} (Reason: {r.qae_remarks?.substring(0, 20)}...)
+                                            </option>
+                                        ))}
+                                    </Input>
+                                </Col>
+                            </Row>
+                        </CardBody>
+                    </Card>
+                )}
+
                 {globalError && (
                     <Alert color="danger" className="alert-dismissible fade show">
                         <i className="ri-error-warning-line me-2 align-middle"></i>
@@ -55,7 +121,7 @@ const FuelDashboard = () => {
                     username={displayUsername} 
                     coolerName={displayCooler} 
                     routeName={displayRoute} 
-                    status={log?.status} 
+                    status={activeLog?.status || log?.status} 
                 />
 
                 {!log ? (
@@ -67,17 +133,16 @@ const FuelDashboard = () => {
                 ) : (
                     <>
                         <Row className="mb-3">
-                            <MetricWidget title="Opening (Ltrs)" value={log.opening_stock_liters} icon="ri-drop-line" color="secondary" />
-                            <MetricWidget title="Total Available" value={log.total_available} icon="ri-safe-2-line" color="primary" />
-                            <MetricWidget title="Fuel Used" value={log.fuel_used_liters} icon="ri-gas-station-line" color="warning" />
-                            <MetricWidget title="Stock %" value={`${log.closing_stock_pct || 0}%`} icon="ri-temp-hot-line" color="info" />
+                            <MetricWidget title="Opening (Ltrs)" value={activeLog?.opening_stock_liters || 0} icon="ri-drop-line" color="secondary" />
+                            <MetricWidget title="Total Available" value={activeLog?.total_available || 0} icon="ri-safe-2-line" color="primary" />
+                            <MetricWidget title="Fuel Used" value={activeLog?.fuel_used_liters || 0} icon="ri-gas-station-line" color="warning" />
+                            <MetricWidget title="Stock %" value={`${activeLog?.closing_stock_pct || 0}%`} icon="ri-temp-hot-line" color="info" />
                         </Row>
                         
                         <Row className="mb-4">
-                            <MetricWidget title="Run Time" value={`${log.running_time_minutes} Hrs`} icon="ri-time-line" color="dark" />
-                            <MetricWidget title="Actual Rate" value={`${log.actual_consumption_rate} L/H`} icon="ri-speed-line" color="primary" />
-                            <MetricWidget title="Expected Rate" value={`${log.expected_consumption_rate} L/H`} icon="ri-speed-mini-line" color="secondary" />
-                            <MetricWidget title="Efficiency" value={`${log.variance_percent}%`} icon="ri-funds-line" color={Math.abs(log.variance_percent || 0) > 10 ? "danger" : "success"} />
+                            <MetricWidget title="Run Time" value={`${activeLog?.running_time_minutes || 0} Hrs`} icon="ri-time-line" color="dark" />
+                            <MetricWidget title="Actual Rate" value={`${activeLog?.actual_consumption_rate || 0} L/H`} icon="ri-speed-line" color="primary" />
+                            <MetricWidget title="Efficiency" value={`${activeLog?.variance_percent || 0}%`} icon="ri-funds-line" color={Math.abs(activeLog?.variance_percent || 0) > 10 ? "danger" : "success"} />
                         </Row>
 
                         <Row>
@@ -86,26 +151,40 @@ const FuelDashboard = () => {
                                     <CardBody>
                                         <h5 className="card-title mb-4">Operational Records</h5>
                                         <Row className="gy-4">
-                                            <Col md={6}>
-                                                <Label>Opening Hours (Meter Reading)</Label>
+                                            <Col md={4}>
+                                                <Label>Opening Stock (Liters)</Label>
                                                 <Input 
                                                     type="number" 
-                                                    value={log.opening_hours || ""} 
-                                                    disabled 
-                                                    readOnly
-                                                    className="bg-light"
+                                                    value={localOpeningLiters} 
+                                                    invalid={!!formErrors.opening_stock_liters}
+                                                    disabled={!canEdit}
+                                                    onChange={(e) => setLocalOpeningLiters(e.target.value)}
+                                                    onBlur={(e) => handleAutoSave({ opening_stock_liters: e.target.value })} 
                                                 />
+                                                <FormFeedback>{formErrors.opening_stock_liters}</FormFeedback>
+                                            </Col>
+                                            <Col md={4}>
+                                                <Label>Opening Hours</Label>
+                                                <Input 
+                                                    type="number" 
+                                                    value={localOpeningHrs} 
+                                                    invalid={!!formErrors.opening_hours}
+                                                    disabled={!canEdit}
+                                                    onChange={(e) => setLocalOpeningHrs(e.target.value)}
+                                                    onBlur={(e) => handleAutoSave({ opening_hours: e.target.value })} 
+                                                />
+                                                <FormFeedback>{formErrors.opening_hours}</FormFeedback>
                                             </Col>
 
-                                            <Col md={6}>
-                                                <Label>Closing Hours (Current Reading)</Label>
+                                            <Col md={4}>
+                                                <Label>Closing Hours</Label>
                                                 <Input 
                                                     type="number" 
                                                     value={localClosingHrs} 
                                                     invalid={!!formErrors.closing_hours}
-                                                    disabled={!log.is_editable}
+                                                    disabled={!canEdit}
                                                     onChange={(e) => setLocalClosingHrs(e.target.value)}
-                                                    onBlur={(e) => saveProgress({ id: log.id, data: { closing_hours: e.target.value } })} 
+                                                    onBlur={(e) => handleAutoSave({ closing_hours: e.target.value })} 
                                                 />
                                                 <FormFeedback>{formErrors.closing_hours}</FormFeedback>
                                             </Col>
@@ -116,34 +195,19 @@ const FuelDashboard = () => {
                                                     type="number" 
                                                     value={localTopUp}
                                                     invalid={!!formErrors.receipt_top_up}
-                                                    disabled={!log.is_editable}
+                                                    disabled={!canEdit}
                                                     onChange={(e) => setLocalTopUp(e.target.value)}
-                                                    onBlur={(e) => saveProgress({ id: log.id, data: { receipt_top_up: e.target.value } })} 
+                                                    onBlur={(e) => handleAutoSave({ receipt_top_up: e.target.value })} 
                                                 />
-                                                <FormFeedback>{formErrors.receipt_top_up}</FormFeedback>
                                             </Col>
-
+                                            
                                             <Col md={8}>
                                                 <Label>Receipt Serial / Voucher No.</Label>
                                                 <Input 
                                                     type="text" 
-                                                    defaultValue={log.receipt_serial || ""} 
-                                                    invalid={!!formErrors.receipt_serial}
-                                                    disabled={!log.is_editable}
-                                                    placeholder="e.g. F-99201"
-                                                    onBlur={(e) => saveProgress({ id: log.id, data: { receipt_serial: e.target.value } })} 
-                                                />
-                                                <FormFeedback>{formErrors.receipt_serial}</FormFeedback>
-                                            </Col>
-
-                                            <Col md={12}>
-                                                <Label>General Remarks</Label>
-                                                <Input 
-                                                    type="textarea" 
-                                                    defaultValue={log.remarks || ""} 
-                                                    disabled={!log.is_editable}
-                                                    placeholder="Note issues..."
-                                                    onBlur={(e) => saveProgress({ id: log.id, data: { remarks: e.target.value } })} 
+                                                    defaultValue={activeLog?.receipt_serial || ""} 
+                                                    disabled={!canEdit}
+                                                    onBlur={(e) => handleAutoSave({ receipt_serial: e.target.value })} 
                                                 />
                                             </Col>
                                         </Row>
@@ -162,34 +226,24 @@ const FuelDashboard = () => {
                                                 className="form-control-lg border-primary"
                                                 value={localClosingLiters}
                                                 invalid={!!formErrors.closing_stock_liters}
-                                                disabled={!log.is_editable}
+                                                disabled={!canEdit}
                                                 onChange={(e) => setLocalClosingLiters(e.target.value)}
+                                                onBlur={(e) => handleAutoSave({ closing_stock_liters: e.target.value })}
                                             />
-                                            <FormFeedback>{formErrors.closing_stock_liters}</FormFeedback>
                                         </div>
                                         
                                         <Button 
                                             color="primary" 
                                             className="w-100 py-2" 
-                                            disabled={!log.is_editable || isUpdating || !localClosingLiters || !localClosingHrs}
-                                            onClick={() => saveProgress({ 
-                                                id: log.id, 
-                                                data: { 
-                                                    closing_stock_liters: localClosingLiters, 
-                                                    closing_hours: localClosingHrs,
-                                                    status: 'APPROVED' 
-                                                } 
+                                            disabled={!canEdit || isUpdating || !localClosingLiters || !localClosingHrs}
+                                            onClick={() => handleAutoSave({ 
+                                                closing_stock_liters: localClosingLiters, 
+                                                closing_hours: localClosingHrs,
+                                                status: 'SUBMITTED' 
                                             })}
                                         >
-                                            {isUpdating ? "Processing..." : "Submit to QAE"}
+                                            {isUpdating ? "Processing..." : (activeLog?.status === 'REJECTED' ? "Resubmit Correction" : "Submit to QAE")}
                                         </Button>
-
-                                        {log.qae_remarks && (
-                                            <div className="mt-4 p-3 bg-light rounded border border-warning">
-                                                <h6 className="text-warning small fw-bold">QAE Feedback:</h6>
-                                                <p className="mb-0 small">{log.qae_remarks}</p>
-                                            </div>
-                                        )}
                                     </CardBody>
                                 </Card>
                             </Col>
@@ -201,7 +255,6 @@ const FuelDashboard = () => {
     );
 };
 
-/* --- Sub-Components --- */
 
 const DashboardHeader = ({ username, coolerName, routeName, status }: any) => (
     <Card className="bg-light-subtle shadow-none border mb-4">
@@ -222,7 +275,7 @@ const DashboardHeader = ({ username, coolerName, routeName, status }: any) => (
                 </Col>
                 <Col sm={4} className="text-sm-end">
                     {status && (
-                        <span className={`badge bg-${status === 'SUBMITTED' ? 'success' : status === 'SUBMITTED' ? 'info' : 'warning'}-subtle text-${status === 'SUBMITTED' ? 'success' : status === 'SUBMITTED' ? 'info' : 'warning'} fs-12 px-3 py-2`}>
+                        <span className={`badge bg-${status === 'DRAFT' ? 'success' : status === 'SUBMITTED' ? 'info' : 'warning'}-subtle text-${status === 'DRAFT' ? 'success' : status === 'SUBMITTED' ? 'info' : 'warning'} fs-12 px-3 py-2`}>
                             {status}
                         </span>
                     )}
@@ -236,13 +289,6 @@ const MorningInitCard = ({ onStart, errors, isPending }: any) => {
     const [openingLtrs, setOpeningLtrs] = useState("");
     const [openingHrs, setOpeningHrs] = useState("");
 
-    const handleStart = () => {
-        onStart({ 
-            opening_stock_liters: openingLtrs, 
-            opening_hours: openingHrs 
-        });
-    };
-
     return (
         <Row className="justify-content-center mt-4">
             <Col xxl={5} lg={7}>
@@ -251,40 +297,18 @@ const MorningInitCard = ({ onStart, errors, isPending }: any) => {
                         <div className="text-center mb-4">
                             <i className="ri-sun-fill display-4 text-info mb-2 d-block"></i>
                             <h5 className="text-primary">Morning Fuel Initialization</h5>
-                            <p className="text-muted small">Verify readings before starting the log.</p>
                         </div>
-                        
                         <div className="mb-3">
-                            <Label>Physical Opening Stock (Liters) <span className="text-danger">*</span></Label>
-                            <Input 
-                                type="number" 
-                                placeholder="0.00"
-                                className="form-control-lg"
-                                invalid={!!errors.opening_stock_liters}
-                                onChange={(e) => setOpeningLtrs(e.target.value)} 
-                            />
+                            <Label>Physical Opening Stock (Liters)</Label>
+                            <Input type="number" invalid={!!errors.opening_stock_liters} onChange={(e) => setOpeningLtrs(e.target.value)} />
                             <FormFeedback>{errors.opening_stock_liters}</FormFeedback>
                         </div>
-
                         <div className="mb-4">
-                            <Label>Generator Opening Hours <span className="text-danger">*</span></Label>
-                            <Input 
-                                type="number" 
-                                placeholder="Current meter reading..."
-                                className="form-control-lg"
-                                invalid={!!errors.opening_hours}
-                                onChange={(e) => setOpeningHrs(e.target.value)} 
-                            />
+                            <Label>Generator Opening Hours</Label>
+                            <Input type="number" invalid={!!errors.opening_hours} onChange={(e) => setOpeningHrs(e.target.value)} />
                             <FormFeedback>{errors.opening_hours}</FormFeedback>
                         </div>
-
-                        <Button 
-                            color="info" 
-                            size="lg" 
-                            className="w-100" 
-                            onClick={handleStart}
-                            disabled={!openingLtrs || !openingHrs || isPending}
-                        >
+                        <Button color="info" size="lg" className="w-100" onClick={() => onStart({ opening_stock_liters: openingLtrs, opening_hours: openingHrs })} disabled={isPending}>
                             {isPending ? "Initialising..." : "Begin Daily Log"}
                         </Button>
                     </CardBody>
